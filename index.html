@@ -18,9 +18,20 @@
 			document.body.appendChild( renderer.domElement );
 
 			var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-			var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+			var material = new THREE.MeshPhongMaterial( { color: 0x00ff00, specular: 0xffffff, shininess: 30, shading: THREE.FlatShading } )
 			var cube = new THREE.Mesh( geometry, material );
 			scene.add( cube );
+
+			// create a point light
+			var pointLight = new THREE.PointLight(0xFFFFFF);
+
+			// set its position
+			pointLight.position.x = 1;
+			pointLight.position.y = 3;
+			pointLight.position.z = 10;
+
+			// add to the scene
+			scene.add(pointLight);
 
 			camera.position.z = 5;
 
