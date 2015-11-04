@@ -17,19 +17,23 @@
 			renderer.setSize( window.innerWidth, window.innerHeight );
 			document.body.appendChild( renderer.domElement );
 
+			var Nx = 50, Ny = 50;
 
 			var geometry = new THREE.Geometry();
-			for (var i = 0; i <= 10; i++) {
-				for (var j = 0; j <= 10; j++) {
-					var x = -1 + 2 * i / 10, y = -1 + 2 * j / 10;
-					var z = Math.exp(-3*(x*x+y*y));
+			for (var i = 0; i <= Nx; i++) {
+				for (var j = 0; j <= Ny; j++) {
+					var x = -1 + 2 * i / Nx, y = -1 + 2 * j / Ny;
+					var z = Math.exp(-10*(x*x+y*y));
 					geometry.vertices.push(new THREE.Vector3(x,y,z));
 				}
 			}
 
-			for (var i = 0; i < 10; i++) {
-				for (var j = 0; j < 10; j++) {
-					var i1 = 11*i + j, i2 = 11*i + (j+1), i3 = 11*(i+1) + (j+1), i4 = 11*(i+1) + j;
+			var geti = function(i, j) { return (Ny + 1) * i + j; };
+
+			for (var i = 0; i < Nx; i++) {
+				for (var j = 0; j < Ny; j++) {
+					var i1 = geti(i, j), i2 = geti(i, j+1);
+					var i3 = geti(i+1, j+1), i4 = geti(i+1, j);
 					geometry.faces.push(new THREE.Face3(i1,i2,i4), new THREE.Face3(i2,i3,i4));
 				}
 			}
