@@ -7,11 +7,21 @@ document.body.appendChild( renderer.domElement );
 
 var Nx = 50, Ny = 50;
 
+var myfun = function(x, y) { return Math.exp(-10*(x*x+y*y)); };
+
+var xygen = function(i, j) {
+	var x = -1 + 2 * i / Nx, y = -1 + 2 * j / Ny;
+	var phi = Math.atan2(y, x);
+	var cosphi = Math.max(Math.abs(Math.cos(phi)), Math.abs(Math.sin(phi)));
+	return [x * cosphi, y * cosphi];
+};
+
 var geometry = new THREE.Geometry();
 for (var i = 0; i <= Nx; i++) {
 	for (var j = 0; j <= Ny; j++) {
-		var x = -1 + 2 * i / Nx, y = -1 + 2 * j / Ny;
-		var z = Math.exp(-10*(x*x+y*y));
+		var xylist = xygen(i, j)
+		var x = xylist[0], y = xylist[1];
+		var z = myfun(x, y);
 		geometry.vertices.push(new THREE.Vector3(x,y,z));
 	}
 }
