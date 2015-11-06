@@ -5,7 +5,10 @@ var renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
-var Nx = 50, Ny = 50;
+
+var controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+var Nx = 30, Ny = 30;
 
 var myfun = function(x, y) { return Math.exp(-10*(x*x+y*y)); };
 
@@ -36,30 +39,38 @@ for (var i = 0; i < Nx; i++) {
 	}
 }
 
-var material = new THREE.MeshPhongMaterial( { color: 0x00ff00, specular: 0xffffff, shininess: 30, shading: THREE.FlatShading, side: THREE.DoubleSide } )
+geometry.computeFaceNormals();
+geometry.computeVertexNormals();
+
+var material = new THREE.MeshPhongMaterial( { color: 0x00bb00, specular: 0x88dd88, shininess: 30, shading: THREE.SmoothShading, side: THREE.DoubleSide } )
 var cube = new THREE.Mesh( geometry, material );
 scene.add( cube );
 
 // create a point light
-var pointLight = new THREE.PointLight(0xFFFFFF);
+var pointLight = new THREE.SpotLight(0xFFFFFF);
 
 // set its position
 pointLight.position.x = 1;
 pointLight.position.y = 3;
-pointLight.position.z = 10;
+pointLight.position.z = 5;
 
 // add to the scene
 scene.add(pointLight);
 
-camera.position.z = 5;
+camera.position.x = 2;
+camera.position.y = -2;
+camera.position.z = 0;
+camera.lookAt(scene.position);
+
+function update()
+{
+	controls.update();
+}
 
 var render = function () {
 	requestAnimationFrame( render );
-
-	cube.rotation.x += 0.01;
-	cube.rotation.y += 0.01;
-
 	renderer.render(scene, camera);
+	update();
 };
 
 render();
