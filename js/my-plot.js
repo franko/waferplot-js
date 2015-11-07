@@ -8,7 +8,7 @@ document.body.appendChild( renderer.domElement );
 
 var controls = new THREE.OrbitControls( camera, renderer.domElement );
 
-var Nx = 30, Ny = 30;
+var Nx = 60, Ny = 60, Dx = 5, Dy = 5;
 
 var myfun = function(x, y) { return Math.exp(-10*(x*x+y*y)); };
 
@@ -42,7 +42,30 @@ for (var i = 0; i < Nx; i++) {
 geometry.computeFaceNormals();
 geometry.computeVertexNormals();
 
-var material = new THREE.MeshPhongMaterial( { color: 0x00bb00, specular: 0x88dd88, shininess: 30, shading: THREE.SmoothShading, side: THREE.DoubleSide } )
+var lines_mat = new THREE.LineBasicMaterial({ color: 0x444444 });
+for (var i = 0; i <= Nx; i += Dx) {
+	var line = new THREE.Geometry();
+	for (var j = 0; j <= Ny; j++) {
+		var xylist = xygen(i, j)
+		var x = xylist[0], y = xylist[1];
+		var z = myfun(x, y);
+		line.vertices.push(new THREE.Vector3(x, y, z));
+	}
+	scene.add(new THREE.Line(line, lines_mat));
+}
+
+for (var j = 0; j <= Ny; j += Dy) {
+	var line = new THREE.Geometry();
+	for (var i = 0; i <= Nx; i++) {
+		var xylist = xygen(i, j)
+		var x = xylist[0], y = xylist[1];
+		var z = myfun(x, y);
+		line.vertices.push(new THREE.Vector3(x, y, z));
+	}
+	scene.add(new THREE.Line(line, lines_mat));
+}
+
+var material = new THREE.MeshPhongMaterial( { color: 0x00bb00, specular: 0x88dd88, shininess: 30, shading: THREE.SmoothShading, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 0.8 } )
 var cube = new THREE.Mesh( geometry, material );
 scene.add( cube );
 
