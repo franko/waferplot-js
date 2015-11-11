@@ -161,11 +161,62 @@ var break_face = function(geometry, iface_parent, iedge1, vert1, iedge2, vert2) 
     geometry.faces[iface1] = face1;
 };
 
+var normalize = function(z, zlevels) {
+    for (var i = 0; i < zlevels.length; i++) {
+        var zlev = zlevels[i];
+        if (zlev > z) {
+            return i - 0.5;
+        } else if (zlev == z) {
+            return i;
+        }
+    }
+    return zlevels.length - 0.5;
+}
+
+var create_zindex_map = function(geometry, zfun, zlevels) {
+    for (var i = 0; i < geometry.vertices.length; i++) {
+        var p = geometry.vertices[i];
+        p.push(zfun(p[0], p[1]));
+    }
+};
+
+var p_interp = function(p1, p2, z) {
+    var z1 = p1[2], z2 = p2[2];
+    var alpha = (z - z1) / (z2 - z1);
+    return [p1[0] + alpha * (p2[0] - p1[0]), p1[1] + alpha * (p2[1] - p1[1]), z];
+};
+
+var cut_zlevels = function(geometry, zvalue, zlevels) {
+    var zindex = normalize(zvalue, zlevels);
+    for (var i = 0; i < geometry.faces.length; i++) {
+        var face = geometry.faces[i];
+        var fvert = -1;
+        var pcut;
+        for (var k = 0; k < face.ivertices.length; k++) {
+            var ivert = face.ivertices[k];
+            var p1 = geometry.vertices[ivert];
+            var knext = face_index_next(face, k);
+            var p2 = geometry.vertices[face.ivertices[knext]];
+            var z1 = normalize(p1[2], zlevels), z2 = normalize(p2[2], zlevels);
+            if ((z1 < zindex && z2 > zindex) || (z1 > zindex && z2 < zindex)) {
+                if (fvert < 0) {
+                    fvert = ivert;
+                    pcut = p_interp(p1, p2, zvalue);
+                } else {
+                    var pcut2 = p_interp(p1, p2, zvalue);
+                    break_face(geometry, i, fvert, pcut, ivert, pcut2);
+                    fvert = -1;
+                }
+            }
+        }
+    }
+};
+
 var Nx = 5, Ny = 5;
 var xygen_test = function(i, j) { return [-1 + 2 * i / Nx, -1 + 2 * j / Ny]; };
-
+var zfun_test = function(x, y) { return Math.pow(1.777777 * x + 2.3333 * y, 2); }
 var geo = create_grid_geometry(5, 5, xygen_test);
-console.log(geo);
-break_face(geo, 6, 7, [5.7, 9.1], 13, [1.1, 4.5]);
-console.log(">> AFTER")
+var my_zlevels = [0.1, 0.5, 3.4, 5.9, 8.1, 12.0];
+create_zindex_map(geo, zfun_test, my_zlevels);
+cut_zlevels(geo, 3.4, my_zlevels);
 console.log(geo);
