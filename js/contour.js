@@ -173,7 +173,7 @@ var normalize = function(z, zlevels) {
     return zlevels.length - 0.5;
 }
 
-var create_zindex_map = function(geometry, zfun, zlevels) {
+var eval_zmap = function(geometry, zfun) {
     for (var i = 0; i < geometry.vertices.length; i++) {
         var p = geometry.vertices[i];
         p.push(zfun(p[0], p[1]));
@@ -186,7 +186,7 @@ var p_interp = function(p1, p2, z) {
     return [p1[0] + alpha * (p2[0] - p1[0]), p1[1] + alpha * (p2[1] - p1[1]), z];
 };
 
-var cut_zlevels = function(geometry, zvalue, zlevels) {
+var cut_zlevel = function(geometry, zvalue, zlevels) {
     var zindex = normalize(zvalue, zlevels);
     for (var i = 0; i < geometry.faces.length; i++) {
         var face = geometry.faces[i];
@@ -212,11 +212,52 @@ var cut_zlevels = function(geometry, zvalue, zlevels) {
     }
 };
 
-var Nx = 5, Ny = 5;
+var geometry_cut_zlevels = function(geometry, zlevels) {
+    for (var i = 0; i < zlevels.length; i++) {
+        cut_zlevel(geometry, zlevels[i], zlevels);
+    }
+};
+
+var select_zlevel = function(geometry, zvalue1, zvalue2, zlevels) {
+    var threegeo = new THREE.Geometry();
+    var vertmap = {};
+    for (var i = 0; i < geometry.faces.length; i++) {
+        var face = geometry.faces[i];
+        var inside = true;
+        for (var k = 0; k < face.ivertices.length; k++) {
+            var ivert = face.ivertices[k];
+            var vert = geometry.vertices[ivert];
+            inside = inside && (vert[2] >= zvalue1 && vert[2] <= zvalue2);
+        }
+        if (inside) {
+            for (var k = 0; k < face.ivertices.length; k++) {
+                var ivert = face.ivertices[k];
+                if (vertmap[ivert] === undefined) {
+                    var vert = geometry.vertices[ivert];
+                    var vec = new THREE.Vector3(vert[0], vert[1], vert[2]);
+                    var threeindex = threegeo.vertices.push(vec) - 1;
+                    vertmap[ivert] = threeindex;
+                }
+            }
+            var a = face.ivertices[0], b = face.ivertices[1];
+            for (var k = 2; k < face.ivertices.length; k++) {
+                var c = face.ivertices[k];
+                threegeo.faces.push(new THREE.Face3(vertmap[a], vertmap[b], vertmap[c]));
+                b = c;
+            }
+        }
+    }
+    return threegeo;
+};
+
+var Nx = 30, Ny = 30;
 var xygen_test = function(i, j) { return [-1 + 2 * i / Nx, -1 + 2 * j / Ny]; };
-var zfun_test = function(x, y) { return Math.pow(1.777777 * x + 2.3333 * y, 2); }
-var geo = create_grid_geometry(5, 5, xygen_test);
-var my_zlevels = [0.1, 0.5, 3.4, 5.9, 8.1, 12.0];
-create_zindex_map(geo, zfun_test, my_zlevels);
-cut_zlevels(geo, 3.4, my_zlevels);
-console.log(geo);
+var myfun = function(x, y) { return Math.exp(-10*(x*x+y*y)); };
+// var zfun_test = function(x, y) { return Math.pow(1.777777 * x + 2.3333 * y, 2); }
+var geo = create_grid_geometry(Nx, Ny, xygen_test);
+var my_zlevels = [0, 0.2, 0.4, 0.6, 0.8, 1.0];
+eval_zmap(geo, myfun);
+cut_zlevel(geo, my_zlevels[1], my_zlevels);
+cut_zlevel(geo, my_zlevels[4], my_zlevels);
+// geometry_cut_zlevels(geo, my_zlevels);
+GEO_CUT_TEST = select_zlevel(geo, my_zlevels[1], my_zlevels[4], my_zlevels);

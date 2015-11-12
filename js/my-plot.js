@@ -8,17 +8,19 @@ document.body.appendChild( renderer.domElement );
 
 var controls = new THREE.OrbitControls( camera, renderer.domElement );
 
-var Nx = 60, Ny = 60, Dx = 5, Dy = 5;
+var Nx = 30, Ny = 30, Dx = 1, Dy = 1;
 
 var myfun = function(x, y) { return Math.exp(-10*(x*x+y*y)); };
 
 var xygen = function(i, j) {
 	var x = -1 + 2 * i / Nx, y = -1 + 2 * j / Ny;
 	var phi = Math.atan2(y, x);
-	var cosphi = Math.max(Math.abs(Math.cos(phi)), Math.abs(Math.sin(phi)));
+	// var cosphi = Math.max(Math.abs(Math.cos(phi)), Math.abs(Math.sin(phi)));
+	var cosphi = 1;
 	return [x * cosphi, y * cosphi];
 };
 
+/*
 var geometry = new THREE.Geometry();
 for (var i = 0; i <= Nx; i++) {
 	for (var j = 0; j <= Ny; j++) {
@@ -38,6 +40,8 @@ for (var i = 0; i < Nx; i++) {
 		geometry.faces.push(new THREE.Face3(i1,i2,i4), new THREE.Face3(i2,i3,i4));
 	}
 }
+*/
+var geometry = GEO_CUT_TEST;
 
 geometry.computeFaceNormals();
 geometry.computeVertexNormals();
@@ -65,7 +69,8 @@ for (var j = 0; j <= Ny; j += Dy) {
 	scene.add(new THREE.Line(line, lines_mat));
 }
 
-var material = new THREE.MeshPhongMaterial( { color: 0x00bb00, specular: 0x88dd88, shininess: 30, shading: THREE.SmoothShading, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 0.8 } )
+// var material = new THREE.MeshPhongMaterial( { color: 0x00bb00, specular: 0x88dd88, shininess: 30, shading: THREE.SmoothShading, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 0.8 } )
+var material = new THREE.MeshBasicMaterial( { color: 0x00bb00, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 0.8 } )
 var cube = new THREE.Mesh( geometry, material );
 scene.add( cube );
 
