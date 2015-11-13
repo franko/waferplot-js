@@ -20,32 +20,6 @@ var xygen = function(i, j) {
 	return [x * cosphi, y * cosphi];
 };
 
-/*
-var geometry = new THREE.Geometry();
-for (var i = 0; i <= Nx; i++) {
-	for (var j = 0; j <= Ny; j++) {
-		var xylist = xygen(i, j)
-		var x = xylist[0], y = xylist[1];
-		var z = myfun(x, y);
-		geometry.vertices.push(new THREE.Vector3(x,y,z));
-	}
-}
-
-var geti = function(i, j) { return (Ny + 1) * i + j; };
-
-for (var i = 0; i < Nx; i++) {
-	for (var j = 0; j < Ny; j++) {
-		var i1 = geti(i, j), i2 = geti(i, j+1);
-		var i3 = geti(i+1, j+1), i4 = geti(i+1, j);
-		geometry.faces.push(new THREE.Face3(i1,i2,i4), new THREE.Face3(i2,i3,i4));
-	}
-}
-*/
-var geometry = GEO_CUT_TEST;
-
-geometry.computeFaceNormals();
-geometry.computeVertexNormals();
-
 var lines_mat = new THREE.LineBasicMaterial({ color: 0x444444 });
 for (var i = 0; i <= Nx; i += Dx) {
 	var line = new THREE.Geometry();
@@ -69,10 +43,24 @@ for (var j = 0; j <= Ny; j += Dy) {
 	scene.add(new THREE.Line(line, lines_mat));
 }
 
-// var material = new THREE.MeshPhongMaterial( { color: 0x00bb00, specular: 0x88dd88, shininess: 30, shading: THREE.SmoothShading, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 0.8 } )
-var material = new THREE.MeshBasicMaterial( { color: 0x00bb00, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 0.8 } )
-var cube = new THREE.Mesh( geometry, material );
-scene.add( cube );
+var add_geometry_to_scene = function(scene, geometry, color) {
+	// var material = new THREE.MeshPhongMaterial( { color: color, specular: 0xdddddd, shininess: 30, shading: THREE.SmoothShading, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 0.8 } )
+	var material = new THREE.MeshBasicMaterial( { color: color, polygonOffset: true, polygonOffsetFactor: 0.8 } )
+	var mesh = new THREE.Mesh( geometry, material );
+	scene.add(mesh);
+}
+
+var geometry;
+
+geometry = GEO_CUT_TEST1;
+geometry.computeFaceNormals();
+geometry.computeVertexNormals();
+add_geometry_to_scene(scene, geometry, 0x00bb00);
+
+geometry = GEO_CUT_TEST2;
+geometry.computeFaceNormals();
+geometry.computeVertexNormals();
+add_geometry_to_scene(scene, geometry, 0x00bbbb);
 
 // create a point light
 var pointLight = new THREE.SpotLight(0xFFFFFF);

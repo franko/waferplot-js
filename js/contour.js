@@ -1,6 +1,6 @@
 
 var create_grid_geometry = function(nx, ny, xygen) {
-    var geometry = { vertices: [], faces: [] };
+    var geometry = { vertices: [], faces: [], cut_map: {} };
     for (var i = 0; i <= nx; i++) {
         for (var j = 0; j <= ny; j++) {
             var xy = xygen(i, j);
@@ -20,7 +20,7 @@ var create_grid_geometry = function(nx, ny, xygen) {
     for (var i = 0; i < nx; i++) {
         for (var j = 0; j < ny; j++) {
             var face = geometry.faces[face_index(i, j)];
-            face.ivertices = [vert_index(i, j), vert_index(i, j+1), vert_index(i+1, j+1), vert_index(i+1, j)];
+            face.ivertices = [vert_index(i, j), vert_index(i+1, j), vert_index(i+1, j+1), vert_index(i, j+1)];
         }
     }
 
@@ -121,6 +121,37 @@ var p_interp = function(p1, p2, z) {
     return [p1[0] + alpha * (p2[0] - p1[0]), p1[1] + alpha * (p2[1] - p1[1]), z];
 };
 
+var list_tuple_find = function(ls, value) {
+    for (var i = 0; i < ls.length; i++) {
+        var tp = ls[i];
+        if (tp[1] === value) {
+            return tp[0];
+        }
+    }
+}
+
+var get_zlevel_cut_point = function(geometry, ivert1, ivert2, zvalue) {
+    var p;
+    if (geometry.cut_map[ivert1] && geometry.cut_map[ivert1][ivert2]) {
+        p = list_tuple_find(geometry.cut_map[ivert1][ivert2], zvalue);
+        if (p) return p;
+
+    } else if (geometry.cut_map[ivert2] && geometry.cut_map[ivert2][ivert1]) {
+        p = list_tuple_find(geometry.cut_map[ivert2][ivert1], zvalue);
+        if (p) return p;
+    }
+    var p1 = geometry.vertices[ivert1], p2 = geometry.vertices[ivert2];
+    p = p_interp(p1, p2, zvalue);
+    if (!geometry.cut_map[ivert1]) {
+        geometry.cut_map[ivert1] = {};
+    }
+    if (!geometry.cut_map[ivert1][ivert2]) {
+        geometry.cut_map[ivert1][ivert2] = [];
+    }
+    geometry.cut_map[ivert1][ivert2].push([p, zvalue]);
+    return p;
+};
+
 var cut_zlevel = function(geometry, zvalue, zlevels) {
     var zindex = normalize(zvalue, zlevels);
     for (var i = 0; i < geometry.faces.length; i++) {
@@ -136,9 +167,9 @@ var cut_zlevel = function(geometry, zvalue, zlevels) {
             if ((z1 < zindex && z2 > zindex) || (z1 > zindex && z2 < zindex)) {
                 if (fvert < 0) {
                     fvert = ivert;
-                    pcut = p_interp(p1, p2, zvalue);
+                    pcut = get_zlevel_cut_point(geometry, ivert, face.ivertices[knext], zvalue);
                 } else {
-                    var pcut2 = p_interp(p1, p2, zvalue);
+                    var pcut2 = get_zlevel_cut_point(geometry, ivert, face.ivertices[knext], zvalue);
                     break_face(geometry, i, fvert, pcut, ivert, pcut2);
                     fvert = -1;
                 }
@@ -193,6 +224,8 @@ var geo = create_grid_geometry(Nx, Ny, xygen_test);
 var my_zlevels = [0, 0.2, 0.4, 0.6, 0.8, 1.0];
 eval_zmap(geo, myfun);
 cut_zlevel(geo, my_zlevels[1], my_zlevels);
-cut_zlevel(geo, my_zlevels[4], my_zlevels);
+cut_zlevel(geo, my_zlevels[2], my_zlevels);
+cut_zlevel(geo, my_zlevels[3], my_zlevels);
 // geometry_cut_zlevels(geo, my_zlevels);
-GEO_CUT_TEST = select_zlevel(geo, my_zlevels[1], my_zlevels[4], my_zlevels);
+GEO_CUT_TEST1 = select_zlevel(geo, my_zlevels[1], my_zlevels[2], my_zlevels);
+GEO_CUT_TEST2 = select_zlevel(geo, my_zlevels[2], my_zlevels[3], my_zlevels);
