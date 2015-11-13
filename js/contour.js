@@ -1,9 +1,10 @@
 
-var create_grid_geometry = function(nx, ny, xygen) {
+var create_grid_geometry = function(nx, ny, xygen, zfun) {
     var geometry = { vertices: [], faces: [], cut_map: {} };
     for (var i = 0; i <= nx; i++) {
         for (var j = 0; j <= ny; j++) {
             var xy = xygen(i, j);
+            xy.push(zfun(xy[0], xy[1]));
             geometry.vertices.push(xy);
         }
     }
@@ -23,6 +24,19 @@ var create_grid_geometry = function(nx, ny, xygen) {
             face.ivertices = [vert_index(i, j), vert_index(i+1, j), vert_index(i+1, j+1), vert_index(i, j+1)];
         }
     }
+
+    geometry.prepare = function(zlevels) {
+        // To not confuse the algorithm it is required that the z function
+        // never assumes an exact z level value at evaluation point.
+        // Add a small epsilon for points that does not satisfy the condition.
+        var epsilon = Math.abs(zlevels[zlevels.length - 1] - zlevels[0]) * 1e-12;
+        for (var i = 0; i < this.vertices.length; i++) {
+            var p = this.vertices[i];
+            if (zlevels.indexOf(p[2]) >= 0) {
+                p[2] += epsilon;
+            }
+        }
+    };
 
     return geometry;
 };
@@ -108,13 +122,6 @@ var normalize = function(z, zlevels) {
     return zlevels.length - 0.5;
 }
 
-var eval_zmap = function(geometry, zfun) {
-    for (var i = 0; i < geometry.vertices.length; i++) {
-        var p = geometry.vertices[i];
-        p.push(zfun(p[0], p[1]));
-    }
-};
-
 var p_interp = function(p1, p2, z) {
     var z1 = p1[2], z2 = p2[2];
     var alpha = (z - z1) / (z2 - z1);
@@ -154,7 +161,10 @@ var get_zlevel_cut_point = function(geometry, ivert1, ivert2, zvalue) {
 
 var cut_zlevel = function(geometry, zvalue, zlevels) {
     var zindex = normalize(zvalue, zlevels);
-    for (var i = 0; i < geometry.faces.length; i++) {
+    // Inside the loop below the number of faces will normally increase.
+    // Store the number of faces to avoid visiting newly added faces.
+    var faces_number = geometry.faces.length;
+    for (var i = 0; i < faces_number; i++) {
         var face = geometry.faces[i];
         var fvert = -1;
         var pcut;
@@ -175,12 +185,6 @@ var cut_zlevel = function(geometry, zvalue, zlevels) {
                 }
             }
         }
-    }
-};
-
-var geometry_cut_zlevels = function(geometry, zlevels) {
-    for (var i = 0; i < zlevels.length; i++) {
-        cut_zlevel(geometry, zlevels[i], zlevels);
     }
 };
 
@@ -216,16 +220,8 @@ var select_zlevel = function(geometry, zvalue1, zvalue2, zlevels) {
     return threegeo;
 };
 
-var Nx = 30, Ny = 30;
-var xygen_test = function(i, j) { return [-1 + 2 * i / Nx, -1 + 2 * j / Ny]; };
-var myfun = function(x, y) { return Math.exp(-10*(x*x+y*y)); };
-// var zfun_test = function(x, y) { return Math.pow(1.777777 * x + 2.3333 * y, 2); }
-var geo = create_grid_geometry(Nx, Ny, xygen_test);
-var my_zlevels = [0, 0.2, 0.4, 0.6, 0.8, 1.0];
-eval_zmap(geo, myfun);
-cut_zlevel(geo, my_zlevels[1], my_zlevels);
-cut_zlevel(geo, my_zlevels[2], my_zlevels);
-cut_zlevel(geo, my_zlevels[3], my_zlevels);
-// geometry_cut_zlevels(geo, my_zlevels);
-GEO_CUT_TEST1 = select_zlevel(geo, my_zlevels[1], my_zlevels[2], my_zlevels);
-GEO_CUT_TEST2 = select_zlevel(geo, my_zlevels[2], my_zlevels[3], my_zlevels);
+CONTOUR = {
+    new_grid: create_grid_geometry,
+    cut_zlevel: cut_zlevel,
+    select_zlevel: select_zlevel
+};

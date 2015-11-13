@@ -8,9 +8,10 @@ document.body.appendChild( renderer.domElement );
 
 var controls = new THREE.OrbitControls( camera, renderer.domElement );
 
-var Nx = 30, Ny = 30, Dx = 1, Dy = 1;
+var Nx = 60, Ny = 60, Dx = 5, Dy = 5;
+var my_zlevels = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0];
 
-var myfun = function(x, y) { return Math.exp(-10*(x*x+y*y)); };
+var myfun = function(x, y) { return 15*(x*x + 0.02)*Math.exp(-10*(x*x+y*y)); };
 
 var xygen = function(i, j) {
 	var x = -1 + 2 * i / Nx, y = -1 + 2 * j / Ny;
@@ -19,6 +20,9 @@ var xygen = function(i, j) {
 	var cosphi = 1;
 	return [x * cosphi, y * cosphi];
 };
+
+var color_level9_i = [0xd73027, 0xf46d43 ,0xfdae61, 0xfee08b, 0xffffbf, 0xd9ef8b, 0xa6d96a, 0x66bd63, 0x1a9850];
+var color_level9 = []; for (var i = 0; i < 9; i++) color_level9[i] = color_level9_i[8 - i];
 
 var lines_mat = new THREE.LineBasicMaterial({ color: 0x444444 });
 for (var i = 0; i <= Nx; i += Dx) {
@@ -50,17 +54,18 @@ var add_geometry_to_scene = function(scene, geometry, color) {
 	scene.add(mesh);
 }
 
-var geometry;
+var grid = CONTOUR.new_grid(Nx, Ny, xygen, myfun);
+grid.prepare(my_zlevels);
+for (var i = 0; i < my_zlevels.length; i++) {
+	CONTOUR.cut_zlevel(grid, my_zlevels[i], my_zlevels);
+}
 
-geometry = GEO_CUT_TEST1;
-geometry.computeFaceNormals();
-geometry.computeVertexNormals();
-add_geometry_to_scene(scene, geometry, 0x00bb00);
-
-geometry = GEO_CUT_TEST2;
-geometry.computeFaceNormals();
-geometry.computeVertexNormals();
-add_geometry_to_scene(scene, geometry, 0x00bbbb);
+for (var i = 0; i < my_zlevels.length - 1; i++) {
+	var geometry = CONTOUR.select_zlevel(grid, my_zlevels[i], my_zlevels[i+1], my_zlevels);
+	// geometry.computeFaceNormals();
+	// geometry.computeVertexNormals();
+	add_geometry_to_scene(scene, geometry, color_level9[i]);
+}
 
 // create a point light
 var pointLight = new THREE.SpotLight(0xFFFFFF);
