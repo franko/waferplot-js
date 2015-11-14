@@ -54,14 +54,14 @@ var add_geometry_to_scene = function(scene, geometry, color) {
 	scene.add(mesh);
 }
 
-var grid = CONTOUR.new_grid(Nx, Ny, xygen, myfun);
+var grid = new CONTOUR.Grid(Nx, Ny, xygen, myfun);
 grid.prepare(my_zlevels);
 for (var i = 0; i < my_zlevels.length; i++) {
-	CONTOUR.cut_zlevel(grid, my_zlevels[i], my_zlevels);
+	grid.cut_zlevel(my_zlevels[i], my_zlevels);
 }
 
 for (var i = 0; i < my_zlevels.length - 1; i++) {
-	var geometry = CONTOUR.select_zlevel(grid, my_zlevels[i], my_zlevels[i+1], my_zlevels);
+	var geometry = grid.select_zlevel(my_zlevels[i], my_zlevels[i+1], my_zlevels);
 	// geometry.computeFaceNormals();
 	// geometry.computeVertexNormals();
 	add_geometry_to_scene(scene, geometry, color_level9[i]);

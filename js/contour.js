@@ -1,44 +1,44 @@
 
-var create_grid_geometry = function(nx, ny, xygen, zfun) {
-    var geometry = { vertices: [], faces: [], cut_map: {} };
+var Grid = function(nx, ny, xygen, zfun) {
+    this.vertices = [];
     for (var i = 0; i <= nx; i++) {
         for (var j = 0; j <= ny; j++) {
             var xy = xygen(i, j);
             xy.push(zfun(xy[0], xy[1]));
-            geometry.vertices.push(xy);
+            this.vertices.push(xy);
         }
     }
 
     var vert_index = function(i, j) { return (ny + 1) * i + j; };
     var face_index = function(i, j) { return ny * i + j; };
 
+    this.faces = [];
     for (var i = 0; i < nx; i++) {
         for (var j = 0; j < ny; j++) {
-            geometry.faces.push({});
+            this.faces.push({});
         }
     }
-
     for (var i = 0; i < nx; i++) {
         for (var j = 0; j < ny; j++) {
-            var face = geometry.faces[face_index(i, j)];
+            var face = this.faces[face_index(i, j)];
             face.ivertices = [vert_index(i, j), vert_index(i+1, j), vert_index(i+1, j+1), vert_index(i, j+1)];
         }
     }
 
-    geometry.prepare = function(zlevels) {
-        // To not confuse the algorithm it is required that the z function
-        // never assumes an exact z level value at evaluation point.
-        // Add a small epsilon for points that does not satisfy the condition.
-        var epsilon = Math.abs(zlevels[zlevels.length - 1] - zlevels[0]) * 1e-12;
-        for (var i = 0; i < this.vertices.length; i++) {
-            var p = this.vertices[i];
-            if (zlevels.indexOf(p[2]) >= 0) {
-                p[2] += epsilon;
-            }
-        }
-    };
+    this.cut_map = {};
+};
 
-    return geometry;
+Grid.prototype.prepare = function(zlevels) {
+    // To not confuse the algorithm it is required that the z function
+    // never assumes an exact z level value at evaluation point.
+    // Add a small epsilon for points that does not satisfy the condition.
+    var epsilon = Math.abs(zlevels[zlevels.length - 1] - zlevels[0]) * 1e-12;
+    for (var i = 0; i < this.vertices.length; i++) {
+        var p = this.vertices[i];
+        if (zlevels.indexOf(p[2]) >= 0) {
+            p[2] += epsilon;
+        }
+    }
 };
 
 var face_index_next = function(face, i) {
@@ -159,28 +159,28 @@ var get_zlevel_cut_point = function(geometry, ivert1, ivert2, zvalue) {
     return p;
 };
 
-var cut_zlevel = function(geometry, zvalue, zlevels) {
+Grid.prototype.cut_zlevel = function(zvalue, zlevels) {
     var zindex = normalize(zvalue, zlevels);
     // Inside the loop below the number of faces will normally increase.
     // Store the number of faces to avoid visiting newly added faces.
-    var faces_number = geometry.faces.length;
+    var faces_number = this.faces.length;
     for (var i = 0; i < faces_number; i++) {
-        var face = geometry.faces[i];
+        var face = this.faces[i];
         var fvert = -1;
         var pcut;
         for (var k = 0; k < face.ivertices.length; k++) {
             var ivert = face.ivertices[k];
-            var p1 = geometry.vertices[ivert];
+            var p1 = this.vertices[ivert];
             var knext = face_index_next(face, k);
-            var p2 = geometry.vertices[face.ivertices[knext]];
+            var p2 = this.vertices[face.ivertices[knext]];
             var z1 = normalize(p1[2], zlevels), z2 = normalize(p2[2], zlevels);
             if ((z1 < zindex && z2 > zindex) || (z1 > zindex && z2 < zindex)) {
                 if (fvert < 0) {
                     fvert = ivert;
-                    pcut = get_zlevel_cut_point(geometry, ivert, face.ivertices[knext], zvalue);
+                    pcut = get_zlevel_cut_point(this, ivert, face.ivertices[knext], zvalue);
                 } else {
-                    var pcut2 = get_zlevel_cut_point(geometry, ivert, face.ivertices[knext], zvalue);
-                    break_face(geometry, i, fvert, pcut, ivert, pcut2);
+                    var pcut2 = get_zlevel_cut_point(this, ivert, face.ivertices[knext], zvalue);
+                    break_face(this, i, fvert, pcut, ivert, pcut2);
                     fvert = -1;
                 }
             }
@@ -188,22 +188,22 @@ var cut_zlevel = function(geometry, zvalue, zlevels) {
     }
 };
 
-var select_zlevel = function(geometry, zvalue1, zvalue2, zlevels) {
+Grid.prototype.select_zlevel = function(zvalue1, zvalue2, zlevels) {
     var threegeo = new THREE.Geometry();
     var vertmap = {};
-    for (var i = 0; i < geometry.faces.length; i++) {
-        var face = geometry.faces[i];
+    for (var i = 0; i < this.faces.length; i++) {
+        var face = this.faces[i];
         var inside = true;
         for (var k = 0; k < face.ivertices.length; k++) {
             var ivert = face.ivertices[k];
-            var vert = geometry.vertices[ivert];
+            var vert = this.vertices[ivert];
             inside = inside && (vert[2] >= zvalue1 && vert[2] <= zvalue2);
         }
         if (inside) {
             for (var k = 0; k < face.ivertices.length; k++) {
                 var ivert = face.ivertices[k];
                 if (vertmap[ivert] === undefined) {
-                    var vert = geometry.vertices[ivert];
+                    var vert = this.vertices[ivert];
                     var vec = new THREE.Vector3(vert[0], vert[1], vert[2]);
                     var threeindex = threegeo.vertices.push(vec) - 1;
                     vertmap[ivert] = threeindex;
@@ -220,8 +220,4 @@ var select_zlevel = function(geometry, zvalue1, zvalue2, zlevels) {
     return threegeo;
 };
 
-CONTOUR = {
-    new_grid: create_grid_geometry,
-    cut_zlevel: cut_zlevel,
-    select_zlevel: select_zlevel
-};
+CONTOUR = { Grid: Grid };
