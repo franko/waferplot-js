@@ -55,12 +55,6 @@ var face_vertex_next = function(face, ivert) {
     return face.ivertices[i + 1 < face.ivertices.length ? i + 1 : 0];
 };
 
-var face_vertex_prev = function(face, ivert) {
-    var i = face.ivertices.indexOf(ivert);
-    if (i < 0) { throw new Error("internal error: face vertex prev"); }
-    return face.ivertices[i - 1 >= 0 ? i - 1 : face.ivertices.length - 1];
-};
-
 var face_contain_edge = function(face, ivert1, ivert2) {
     for (var i = 0; i < face.ivertices.length; i++) {
         var ivertk = face.ivertices[i];
@@ -82,12 +76,9 @@ var break_face = function(geometry, iface_parent, iedge1, vert1, iedge2, vert2) 
     var ivert1 = geometry.vertices.push(vert1) - 1;
     var ivert2 = geometry.vertices.push(vert2) - 1;
 
-    // Create new faces. At this step not bound to geometry.
+    // Create new faces. At this step not bound to grid object.
     var face1 = { ivertices: [] };
     var face2 = { ivertices: [] };
-
-    var iface1 = iface_parent; // geometry.faces.push(face1) - 1;
-    var iface2 = geometry.faces.push(face2) - 1;
 
     var face_parent = geometry.faces[iface_parent];
 
@@ -107,7 +98,7 @@ var break_face = function(geometry, iface_parent, iedge1, vert1, iedge2, vert2) 
     }
     face2.ivertices.push(ivert1);
 
-    geometry.faces[iface1] = face1;
+    return [face1, face2];
 };
 
 var normalize = function(z, zlevels) {
@@ -162,9 +153,9 @@ var get_zlevel_cut_point = function(geometry, ivert1, ivert2, zvalue) {
 Grid.prototype.cut_zlevel = function(zvalue, zlevels) {
     var zindex = normalize(zvalue, zlevels);
     // Inside the loop below the number of faces will normally increase.
-    // Store the number of faces to avoid visiting newly added faces.
-    var faces_number = this.faces.length;
-    for (var i = 0; i < faces_number; i++) {
+    // The faces that are added inside the loop *needs* to be inspected by
+    // this loop.
+    for (var i = 0; i < this.faces.length; i++) {
         var face = this.faces[i];
         var fvert = -1;
         var pcut;
@@ -180,7 +171,14 @@ Grid.prototype.cut_zlevel = function(zvalue, zlevels) {
                     pcut = get_zlevel_cut_point(this, ivert, face.ivertices[knext], zvalue);
                 } else {
                     var pcut2 = get_zlevel_cut_point(this, ivert, face.ivertices[knext], zvalue);
-                    break_face(this, i, fvert, pcut, ivert, pcut2);
+                    var new_faces = break_face(this, i, fvert, pcut, ivert, pcut2);
+                    // The first face is the one that was "carved" out. Put it
+                    // in-place.
+                    this.faces[i] = new_faces[0];
+                    // The second face is the remaining one. It is added at the
+                    // end so that is examinated again in the loop in case it
+                    // needs to be broken again.
+                    this.faces.push(new_faces[1]);
                     fvert = -1;
                 }
             }
