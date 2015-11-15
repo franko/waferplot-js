@@ -13,11 +13,15 @@ var my_zlevels = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0];
 
 var myfun = function(x, y) { return 15*(x*x + 0.02)*Math.exp(-10*(x*x+y*y)); };
 
+var xygen_grid = function(i, j, zfun) {
+	var x = -1 + 2 * i / Nx, y = -1 + 2 * j / Ny;
+	return new THREE.Vector3(x, y, zfun(x, y));
+};
+
 var xygen = function(i, j, zfun) {
 	var x = -1 + 2 * i / Nx, y = -1 + 2 * j / Ny;
 	var phi = Math.atan2(y, x);
-	// var cosphi = Math.max(Math.abs(Math.cos(phi)), Math.abs(Math.sin(phi)));
-	var cosphi = 1;
+	var cosphi = Math.max(Math.abs(Math.cos(phi)), Math.abs(Math.sin(phi)));
 	x *= cosphi;
 	y *= cosphi;
 	return new THREE.Vector3(x, y, zfun(x, y));
@@ -30,7 +34,10 @@ var lines_mat = new THREE.LineBasicMaterial({ color: 0x444444 });
 for (var i = 0; i <= Nx; i += Dx) {
 	var line = new THREE.Geometry();
 	for (var j = 0; j <= Ny; j++) {
-		line.vertices.push(xygen(i, j, myfun));
+		var p = xygen_grid(i, j, myfun);
+		if (p.length() < 1) {
+			line.vertices.push(p);
+		}
 	}
 	scene.add(new THREE.Line(line, lines_mat));
 }
@@ -38,7 +45,10 @@ for (var i = 0; i <= Nx; i += Dx) {
 for (var j = 0; j <= Ny; j += Dy) {
 	var line = new THREE.Geometry();
 	for (var i = 0; i <= Nx; i++) {
-		line.vertices.push(xygen(i, j, myfun));
+		var p = xygen_grid(i, j, myfun);
+		if (p.length() < 1) {
+			line.vertices.push(p);
+		}
 	}
 	scene.add(new THREE.Line(line, lines_mat));
 }
