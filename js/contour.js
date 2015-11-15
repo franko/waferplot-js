@@ -1,11 +1,9 @@
 
-var Grid = function(nx, ny, xygen, zfun) {
+var Grid = function(nx, ny, grid_gen, zfun) {
     this.vertices = [];
     for (var i = 0; i <= nx; i++) {
         for (var j = 0; j <= ny; j++) {
-            var xy = xygen(i, j);
-            xy.push(zfun(xy[0], xy[1]));
-            this.vertices.push(xy);
+            this.vertices.push(grid_gen(i, j, zfun));
         }
     }
 
@@ -35,8 +33,8 @@ Grid.prototype.prepare = function(zlevels) {
     var epsilon = Math.abs(zlevels[zlevels.length - 1] - zlevels[0]) * 1e-12;
     for (var i = 0; i < this.vertices.length; i++) {
         var p = this.vertices[i];
-        if (zlevels.indexOf(p[2]) >= 0) {
-            p[2] += epsilon;
+        if (zlevels.indexOf(p.z) >= 0) {
+            p.z += epsilon;
         }
     }
 };
@@ -114,9 +112,9 @@ var normalize = function(z, zlevels) {
 }
 
 var p_interp = function(p1, p2, z) {
-    var z1 = p1[2], z2 = p2[2];
+    var z1 = p1.z, z2 = p2.z;
     var alpha = (z - z1) / (z2 - z1);
-    return [p1[0] + alpha * (p2[0] - p1[0]), p1[1] + alpha * (p2[1] - p1[1]), z];
+    return new THREE.Vector3(p1.x + alpha * (p2.x - p1.x), p1.y + alpha * (p2.y - p1.y), z);
 };
 
 var list_tuple_find = function(ls, value) {
@@ -164,7 +162,7 @@ Grid.prototype.cut_zlevel = function(zvalue, zlevels) {
             var p1 = this.vertices[ivert];
             var knext = face_index_next(face, k);
             var p2 = this.vertices[face.ivertices[knext]];
-            var z1 = normalize(p1[2], zlevels), z2 = normalize(p2[2], zlevels);
+            var z1 = normalize(p1.z, zlevels), z2 = normalize(p2.z, zlevels);
             if ((z1 < zindex && z2 > zindex) || (z1 > zindex && z2 < zindex)) {
                 if (fvert < 0) {
                     fvert = ivert;
@@ -195,15 +193,17 @@ Grid.prototype.select_zlevel = function(zvalue1, zvalue2, zlevels) {
         for (var k = 0; k < face.ivertices.length; k++) {
             var ivert = face.ivertices[k];
             var vert = this.vertices[ivert];
-            inside = inside && (vert[2] >= zvalue1 && vert[2] <= zvalue2);
+            inside = inside && (vert.z >= zvalue1 && vert.z <= zvalue2);
         }
         if (inside) {
             for (var k = 0; k < face.ivertices.length; k++) {
                 var ivert = face.ivertices[k];
                 if (vertmap[ivert] === undefined) {
                     var vert = this.vertices[ivert];
-                    var vec = new THREE.Vector3(vert[0], vert[1], vert[2]);
-                    var threeindex = threegeo.vertices.push(vec) - 1;
+                    // Normally here a "clone" of vert should be taken but we
+                    // assume that the three.js geometry can share the vertices
+                    // with the Grid object.
+                    var threeindex = threegeo.vertices.push(vert) - 1;
                     vertmap[ivert] = threeindex;
                 }
             }

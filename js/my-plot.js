@@ -13,12 +13,14 @@ var my_zlevels = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0];
 
 var myfun = function(x, y) { return 15*(x*x + 0.02)*Math.exp(-10*(x*x+y*y)); };
 
-var xygen = function(i, j) {
+var xygen = function(i, j, zfun) {
 	var x = -1 + 2 * i / Nx, y = -1 + 2 * j / Ny;
 	var phi = Math.atan2(y, x);
 	// var cosphi = Math.max(Math.abs(Math.cos(phi)), Math.abs(Math.sin(phi)));
 	var cosphi = 1;
-	return [x * cosphi, y * cosphi];
+	x *= cosphi;
+	y *= cosphi;
+	return new THREE.Vector3(x, y, zfun(x, y));
 };
 
 var color_level9_i = [0xd73027, 0xf46d43 ,0xfdae61, 0xfee08b, 0xffffbf, 0xd9ef8b, 0xa6d96a, 0x66bd63, 0x1a9850];
@@ -28,10 +30,7 @@ var lines_mat = new THREE.LineBasicMaterial({ color: 0x444444 });
 for (var i = 0; i <= Nx; i += Dx) {
 	var line = new THREE.Geometry();
 	for (var j = 0; j <= Ny; j++) {
-		var xylist = xygen(i, j)
-		var x = xylist[0], y = xylist[1];
-		var z = myfun(x, y);
-		line.vertices.push(new THREE.Vector3(x, y, z));
+		line.vertices.push(xygen(i, j, myfun));
 	}
 	scene.add(new THREE.Line(line, lines_mat));
 }
@@ -39,10 +38,7 @@ for (var i = 0; i <= Nx; i += Dx) {
 for (var j = 0; j <= Ny; j += Dy) {
 	var line = new THREE.Geometry();
 	for (var i = 0; i <= Nx; i++) {
-		var xylist = xygen(i, j)
-		var x = xylist[0], y = xylist[1];
-		var z = myfun(x, y);
-		line.vertices.push(new THREE.Vector3(x, y, z));
+		line.vertices.push(xygen(i, j, myfun));
 	}
 	scene.add(new THREE.Line(line, lines_mat));
 }
