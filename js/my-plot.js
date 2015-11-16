@@ -1,10 +1,11 @@
 var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+var iwidth = 800, iheight = 600;
+var camera = new THREE.PerspectiveCamera( 75, iwidth/iheight, 0.1, 1000 );
 
 var renderer = new THREE.WebGLRenderer();
-renderer.setSize( window.innerWidth, window.innerHeight );
-document.body.appendChild( renderer.domElement );
-
+renderer.setSize(iwidth, iheight);
+var container = document.getElementById("three-js");
+container.appendChild( renderer.domElement );
 
 var controls = new THREE.OrbitControls( camera, renderer.domElement );
 
