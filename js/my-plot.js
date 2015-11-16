@@ -1,3 +1,5 @@
+MYAPP = {};
+
 var scene = new THREE.Scene();
 var iwidth = 800, iheight = 600;
 var camera = new THREE.PerspectiveCamera( 75, iwidth/iheight, 0.1, 1000 );

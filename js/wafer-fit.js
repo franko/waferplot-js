@@ -47,3 +47,5 @@ var build_zernike_model = function(ms, zer_order, normalize) {
     }
     return Matrix.create(Xdata);
 }
+
+MYAPP.build_zernike_model = build_zernike_model;
