@@ -37,10 +37,8 @@ var onLoadFile = function(evt) {
             var y = MYAPP.FileData.col(1);
             var M = X.transpose().multiply(X);
             var b = M.inverse().multiply(X.transpose().multiply(y));
-            console.log(MYAPP.FileData);
-            console.log(y.inspect());
-            console.log(b.inspect());
-            console.log(X.multiply(b).inspect());
+            var fn = MYAPP.new_interp_function(b, 2);
+            MYAPP.load_wafer_function(MYAPP.new_interp_function)
         }
         catch (err) {
             var msg_div = document.createElement('div');
