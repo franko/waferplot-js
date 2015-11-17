@@ -22,6 +22,8 @@ var csvReader = function(text) {
     return {next: next};
 };
 
+var normalize300 = function(x) { return x / 150; };
+
 var onLoadFile = function(evt) {
     if (evt.target.readyState == FileReader.DONE) {
         try {
@@ -29,16 +31,16 @@ var onLoadFile = function(evt) {
             var headers = reader.next();
             var data = [];
             for (var line = reader.next(); line; line = reader.next()) {
-                console.log(line);
                 data.push(line);
             }
             MYAPP.FileData = DataFrame.create(data, headers);
-            var X = MYAPP.build_zernike_model(MYAPP.FileData, 2, function(x) { return x / 150; });
+            var ORDER = 4;
+            var X = MYAPP.build_zernike_model(MYAPP.FileData, ORDER, normalize300);
             var y = MYAPP.FileData.col(1);
             var M = X.transpose().multiply(X);
             var b = M.inverse().multiply(X.transpose().multiply(y));
-            var fn = MYAPP.new_interp_function(b, 2);
-            MYAPP.load_wafer_function(MYAPP.new_interp_function)
+            var fn = MYAPP.new_interp_function(b, ORDER, normalize300);
+            MYAPP.load_wafer_function(fn)
         }
         catch (err) {
             var msg_div = document.createElement('div');

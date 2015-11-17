@@ -48,11 +48,12 @@ var build_zernike_model = function(ms, zer_order, normalize) {
     return Matrix.create(Xdata);
 }
 
-var new_interp_function = function(coeff, zer_order) {
-    return function(x, y) {
+var new_interp_function = function(coeff, zer_order, normalize) {
+    return function(ux, uy) {
+        var x = normalize(ux), y = normalize(uy);
         var s = 0;
         var r = Math.sqrt(x*x + y*y), phi = Math.atan2(y, x);
-        for (var j = 0, n = 0; n <= zer_order; n++) {
+        for (var j = 1, n = 0; n <= zer_order; n++) {
             for (var m = -n; m <= n; m += 2, j++) {
                 s += coeff.e(j) * zernicke(n, m, r, phi);
             }

@@ -16,7 +16,7 @@ var color_level9 = []; for (var i = 0; i < 9; i++) color_level9[i] = color_level
 var gen_carrier_geometry = function(plot, height) {
 	var Nx = plot.Nx, Ny = plot.Ny;
 	var xygen = plot.xygen, zfun = plot.zfun;
-	var bo_z = function() { return -height; };
+	var bo_z = function() { return height; };
 	var carrier = new THREE.Geometry();
 	var i = 0, j = 0;
 	for (/**/; j <= Ny; j++) {
@@ -65,7 +65,7 @@ var add_pointlight = function(scene, color, pos) {
 var new_plot3d_scene = function(plot) {
 	var scene = new THREE.Scene();
 
-	var carrier = gen_carrier_geometry(plot, 0);
+	var carrier = gen_carrier_geometry(plot, plot.zlevels[0]);
 	add_geometry_to_scene(plot, scene, carrier, 0xbbbbbb);
 
 	var zlevels = plot.zlevels;
@@ -105,27 +105,34 @@ var render = function () {
 	update();
 };
 
-var new_plot_example = function() {
-	var Nx = 60, Ny = 60, Dx = 5, Dy = 5;
-	var zlevels = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0];
+var new_plot = function(zfun) {
+	var Nx = 80, Ny = 80, Dx = 5, Dy = 5;
 
-	for (var i = 0; i < zlevels.length; i++) {
-		zlevels[i] *= 25;
-	}
-
-	var zfun = function(x, y) { var u=x/150, v=y/150; return 25 * 18*(u*u + 0.02)*Math.exp(-10*(u*u+0.2*v*v)); };
-
-	var xygen = function(i, j, zfun) {
+	var xyeval = function(i, j, action) {
 		var x = -150 + 300 * i / Nx, y = -150 + 300 * j / Ny;
 		var phi = Math.atan2(y, x);
 		var cosphi = Math.max(Math.abs(Math.cos(phi)), Math.abs(Math.sin(phi)));
-		x *= cosphi;
-		y *= cosphi;
-		return new THREE.Vector3(x, y, zfun(x, y));
+		return action(x * cosphi, y * cosphi);
+    }
+
+	var zmin, zmax;
+	for (var i = 0; i <= Nx; i++) {
+		for (var j = 0; j <= Ny; j++) {
+			var z = xyeval(i, j, zfun);
+			zmin = (zmin && zmin <= z) ? zmin : z;
+			zmax = (zmax && zmax >= z) ? zmax : z;
+		}
+	}
+
+	var zlevels = [];
+	for (var i = 0; i < 10; i++) { zlevels.push(zmin + i * (zmax - zmin) / 9); }
+
+	var xygen = function(i, j, zfun) {
+		return xyeval(i, j, function(x, y) { return new THREE.Vector3(x, y, zfun(x, y)); });
 	};
 
-	var mat = new THREE.Matrix4();
-	mat.makeScale(1/150, 1/150, 1/25);
+	var offset = new THREE.Matrix4().setPosition(new THREE.Vector3(0, 0, -zmin));
+	var mat = new THREE.Matrix4().makeScale(1/150, 1/150, 1/(zmax - zmin)).multiply(offset);
 
 	var plot = {
 		Nx: Nx,
@@ -139,7 +146,17 @@ var new_plot_example = function() {
 	return plot;
 };
 
-var plot_example = new_plot_example();
+MYAPP.load_wafer_function = function(zfun) {
+	var plot = new_plot(zfun);
+	MYAPP.scene = new_plot3d_scene(plot);
+};
+
+var new_plot_example = function() {
+	return new_plot(zfun);
+};
+
+var zfun_example = function(x, y) { var u=x/150, v=y/150; return 25 * 18*(u*u + 0.02)*Math.exp(-10*(u*u+v*v)); };
+var plot_example = new_plot(zfun_example);
 MYAPP.scene = new_plot3d_scene(plot_example);
 
 point_camera(MYAPP.scene);
