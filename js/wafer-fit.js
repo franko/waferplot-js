@@ -62,5 +62,66 @@ var new_interp_function = function(coeff, zer_order, normalize) {
     };
 };
 
-MYAPP.build_zernike_model = build_zernike_model;
-MYAPP.new_interp_function = new_interp_function;
+// Returns the number of Zernicke polynomials from 0 to order n.
+var zernicke_terms = function(n) {
+    return (n + 1) * (n + 2) / 2;
+}
+
+var vector_stat = function(v) {
+    var n = v.dimensions();
+    var s = 0, ssq = 0;
+    for (var i = 1; i <= n; i++) {
+        s += v.e(i);
+    }
+    var avg = s / n;
+    for (var i = 1; i <= v.dimensions(); i++) {
+        ssq += Math.pow(v.e(i) - avg, 2);
+    }
+    return {average: avg, variance: ssq / (n - 1)};
+}
+
+var linear_fit = function(data, y, order, normalize) {
+    var X = build_zernike_model(data, order, normalize);
+    var M = X.transpose().multiply(X);
+    var Minv = M.inverse();
+    if (Minv) {
+        return { model: X, coeff: Minv.multiply(X.transpose().multiply(y)) };
+    }
+};
+
+var resid_ratio = function(y, ypred) {
+    var stat = vector_stat(y);
+    var res_ssq = Math.pow(y.subtract(ypred).modulus(), 2) / (y.dimensions() - 1);
+    return res_ssq / stat.variance;
+};
+
+var zernike_fit = function(data, y_index, normalize) {
+    var y = data.col(y_index);
+
+    var order;
+    var order_best = 0, rr_best;
+    for (order = 0; zernicke_terms(order) < data.rows(); order++) {
+        var fit = linear_fit(data, y, order, normalize);
+        if (!fit) continue;
+        var ypred = fit.model.multiply(fit.coeff);
+        var rr = resid_ratio(y, ypred);
+        console.log(">>", order, rr);
+        if (!rr_best || rr_best > rr) {
+            rr_best = rr;
+            order_best = order;
+        }
+    }
+    order = order_best;
+    var X = build_zernike_model(data, order, normalize);
+    var y = data.col(y_index);
+    var M = X.transpose().multiply(X);
+    var b = M.inverse().multiply(X.transpose().multiply(y));
+    var fn = new_interp_function(b, order, normalize);
+    console.log("ORDER", order);
+    console.log("Y", y.inspect());
+    console.log("PREDICT", X.multiply(b).inspect());
+    console.log("RESIDUAL:", y.subtract(X.multiply(b)).modulus());
+    return fn;
+}
+
+MYAPP.zernike_fit = zernike_fit;

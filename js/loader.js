@@ -33,13 +33,8 @@ var onLoadFile = function(evt) {
             for (var line = reader.next(); line; line = reader.next()) {
                 data.push(line);
             }
-            MYAPP.FileData = DataFrame.create(data, headers);
-            var ORDER = 4;
-            var X = MYAPP.build_zernike_model(MYAPP.FileData, ORDER, normalize300);
-            var y = MYAPP.FileData.col(1);
-            var M = X.transpose().multiply(X);
-            var b = M.inverse().multiply(X.transpose().multiply(y));
-            var fn = MYAPP.new_interp_function(b, ORDER, normalize300);
+            var dframe = DataFrame.create(data, headers);
+            var fn = MYAPP.zernike_fit(dframe, 1, normalize300);
             MYAPP.load_wafer_function(fn)
         }
         catch (err) {

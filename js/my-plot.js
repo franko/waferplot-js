@@ -65,7 +65,8 @@ var add_pointlight = function(scene, color, pos) {
 var new_plot3d_scene = function(plot) {
 	var scene = new THREE.Scene();
 
-	var carrier = gen_carrier_geometry(plot, plot.zlevels[0]);
+	var zmin = plot.zlevels[0], zmax = plot.zlevels[plot.zlevels.length - 1];
+	var carrier = gen_carrier_geometry(plot, zmin - (zmax - zmin));
 	add_geometry_to_scene(plot, scene, carrier, 0xbbbbbb);
 
 	var zlevels = plot.zlevels;
@@ -132,7 +133,8 @@ var new_plot = function(zfun) {
 	};
 
 	var offset = new THREE.Matrix4().setPosition(new THREE.Vector3(0, 0, -zmin));
-	var mat = new THREE.Matrix4().makeScale(1/150, 1/150, 1/(zmax - zmin)).multiply(offset);
+	var Z_SHRINK_FACTOR = 3;
+	var mat = new THREE.Matrix4().makeScale(1/150, 1/150, 1/(Z_SHRINK_FACTOR * (zmax - zmin))).multiply(offset);
 
 	var plot = {
 		Nx: Nx,
