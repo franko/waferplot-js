@@ -23,10 +23,10 @@ var csvReader = function(text) {
 };
 
 var normalize300 = function(x) { return x / 150; };
+var normalize30 = function(x) { return x / 15; };
 
 var onLoadFile = function(evt) {
     if (evt.target.readyState == FileReader.DONE) {
-        try {
             var reader = csvReader(evt.target.result);
             var headers = reader.next();
             var data = [];
@@ -34,14 +34,9 @@ var onLoadFile = function(evt) {
                 data.push(line);
             }
             var dframe = DataFrame.create(data, headers);
-            var fn = MYAPP.zernike_fit(dframe, 1, normalize300);
+            var tps_param = {regularization: 0.05, zindex: 1, normalize: normalize30};
+            var fn = MYAPP.tps_fit(dframe, tps_param);
             MYAPP.load_wafer_function(fn)
-        }
-        catch (err) {
-            var msg_div = document.createElement('div');
-            msg_div.innerHTML = '<span class="error"> Error loading file ' + JSON.stringify(files[index].handler.name) + ': ' + err + '</span>';
-            document.body.appendChild(msg_div);
-        }
     }
 };
 
