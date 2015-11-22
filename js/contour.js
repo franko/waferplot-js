@@ -53,22 +53,6 @@ var face_vertex_next = function(face, ivert) {
     return face.ivertices[i + 1 < face.ivertices.length ? i + 1 : 0];
 };
 
-var face_contain_edge = function(face, ivert1, ivert2) {
-    for (var i = 0; i < face.ivertices.length; i++) {
-        var ivertk = face.ivertices[i];
-        if (ivertk == ivert1) {
-            var inext = face_index_next(face, i);
-            var iprev = face_index_prev(face, i);
-            if (face.ivertices[inext] == ivert2) {
-                return i;
-            } else if (face.ivertices[iprev] == ivert2) {
-                return iprev;
-            }
-        }
-    }
-    return -1;
-};
-
 var break_face = function(geometry, iface_parent, iedge1, vert1, iedge2, vert2) {
     // Add new vertex into geometry vertex list.
     var ivert1 = geometry.vertices.push(vert1) - 1;
