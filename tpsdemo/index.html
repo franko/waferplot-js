@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>
+      Thin Plate Spline editor - an example program in C++
+    </title>
+    <meta http-equiv="content-type" content=
+    "text/html; iso-8859-1">
+    <meta name="keywords" content=
+    "thin, plate, spline, tps, interpolation, example, demo, code, open, free, C++">
+    <meta name="description" content=
+    "Thin Plate Spline editor - an OpenGL and uBlas based example program in C++">
+
+    <meta name="DC.date" content="2004-11-11">
+
+    <meta name="OS.title" content="TPSdemo">
+    <meta name="OS.topic" content="thin plate spline, mathematics, editor, 3D, interpolation">
+    <meta name="OS.license" content="Boost license">
+    <meta name="OS.description" content="Interactive Thin Plate Spline (TPS) demo/editor for OpenGL+GLUT.">
+    <meta name="OS.programmingLanguage" content="C++">
+    <meta name="OS.firstVersion" content="2003-06-27">
+    <meta name="OS.latestVersion" content="2005-08-10">
+
+  </head>
+  <body>
+    <h1>
+      Thin Plate Spline editor - an example program in C++
+    </h1>
+    <p>
+      &copy; 2003,2004,2005 by Jarno Elonen -
+      <small>URN:NBN:fi-fe20031422</small>
+    </p>
+    <div style="float: right; text-align: center;">
+      <a href="gfx/tpsdemo.png"><img src="gfx/tpsdemo-small.png"
+      border="0" alt="screenshot"></a><br>
+      <small><em>Screenshot from the TPS demo</em></small>
+    </div>
+
+    <p>
+    <blockquote><em>Based mostly on
+    "Approximation Methods for Thin Plate Spline Mappings and Principal Warps"
+     by Gianluca Donato and Serge Belongie, 2002.</em></blockquote>
+    </p>
+
+    <h2>
+      Introduction to TPS
+    </h2>
+    <p>
+      Thin Plate Spline, or TPS for short, is an interpolation
+      method that finds a <em>"minimally bended" smooth surface
+      that passes through all given points</em>. TPS of 3 control
+      points is a plane, more than 3 is generally a curved surface
+      and less than 3 is undefined.
+    </p>
+    <p>
+      The name "Thin Plate" comes from the fact that a TPS more or
+      less simulates how a thin metal plate would behave if it was
+      forced through the same control points.
+    </p>
+    <p>
+      Thin plate splines are particularily popular in representing
+      shape transformations, for example, image morphing or shape
+      detection. Consider two equally sized sets of 2D-points,
+      <em>A</em> being the vertices of the original shape and <em>B</em> of the target
+      shape. Let <em>z<sub>i</sub>=B<sub>ix</sub> -
+      A<sub>ix</sub></em>. Then fit a TPS over points
+      <em>(a<sub>ix</sub>, a<sub>iy</sub>, z<sub>i</sub>)</em> to
+      get interpolation function for translation of points in
+      <em>x</em> direction. Repeat the same for <em>y</em>.
+    </p>
+    <p>
+      In some cases, e.g. when the control point coordinates are
+      noisy, you may want to relax the interpolation requirements
+      slightly so that the resulting surface doesn't have to go
+      exactly exactly through the control points. This is called
+      <em>regularization</em> and is controlled by regularization
+      parameter <em>&lambda;</em>. If <em>&lambda;</em> is zero,
+      interpolation is exact and if it's very large, the resulting
+      TPS surface is reduced to a least squares fitted plane
+      ("bending energy" of a plane is 0). In our example, the
+      regularization parameter is also made scale invariant with an
+      extra parameter <em>&alpha;</em>.
+    </p>
+    <h3>
+      The math
+    </h3>
+    <p>
+      Given set <em>C</em> of <em>p</em> 3D control points....
+    </p>
+    <div class="menu">
+      <img src="gfx/eq1.png" alt="Eq. 1">
+    </div>
+    <p>
+      ...and regularization parameter <em>&lambda;</em>, solve
+      unknown TPS weights <em>w</em> and <em>a</em> from from
+      linear equation system...
+    </p>
+    <div class="menu">
+      <img src="gfx/eq2.png" alt="Eq. 2">
+    </div>
+    <p>
+      ..., where <em>K</em>, <em>P</em> and <em>O</em> are
+      submatrices and <em>w</em>, <em>a</em>, <em>v</em> and
+      <em>o</em> are column vectors, given by:
+    </p>
+    <div class="menu">
+      <img src="gfx/eq3.png" alt="Eq. 3">
+    </div>
+    <p>
+      Note that <em>L</em>, and thus also its submatrix <em>K</em>,
+      is symmetric so you can calculate elements for upper triangle
+      only and copy them to the lower one. Also, &alpha; (mean of
+      distances between control points' xy-projections) is a
+      constant only present on the diagonal of <em>K</em>, so you
+      can easily calculate it while filling up the upper and lower
+      triangles.
+    </p>
+    <p>
+      Then, once you know values for <em>w</em> and <em>a</em>, you
+      can interpolate <em>z</em> for arbitrary points
+      <em>(x,y)</em> from:
+    </p>
+    <div class="menu">
+      <img src="gfx/eq4.png" alt="Eq. 4">
+    </div>
+    <p>
+      Bending energy (scalar) of a TPS is given by:
+    </p>
+    <div class="menu">
+      <img src="gfx/eq5.png" alt="Eq. 5">
+    </div>
+    <p>
+      (download <a href="gfx/tps-formulas.mml">formulas in MML</a>)
+    </p>
+    <h2>
+      Example code
+    </h2>
+    <p>
+      <code>Tpsdemo</code> is an example program, a graphical thin
+      plate spline editor that demonstrates how to implement TPS
+      interpolation in C++. It uses <a href=
+      "http://www.opengl.org/">OpenGL + GLUT</a> for graphics and
+      <a href="http://www.boost.org/">Boost uBlas library</a> for
+      representing large matrices.
+    </p>
+    <p>
+      Download the whole source code and this explanation
+         (<a href="tpsdemo-1.1.tar.gz">tpsdemo-1.1.tar.gz</a>) or
+         browse individual files:
+    </p>
+    <div class="menu">
+      <ul>
+        <li>
+          <code><a href="main.cpp">main.cpp</a></code> - code for
+          solving the TPS weights, interpolating a grid with them
+          and all OpenGL user interface stuff. Features:
+          <ul>
+            <li>
+              mouse drive UI: click button 1 to add or elevate a
+              point, hold down button 2 to rotate camera and click
+              button 3 to show a popup menu
+            </li>
+            <li>
+              the shaded surface consists of 100x100 rectangles
+            </li>
+            <li>
+              shows XY plane as a grid and cartesian axes X,Y,Z in
+              colors R,G,B
+            </li>
+            <li>
+              shows control points in relation to XY plane as
+              bright yellow "pins"
+            </li>
+            <li>
+              keyboard commands: + and - tune regularization, d
+              deletes selected control point, / and * zoom in/out
+            </li>
+            <li>
+              simple to modify to use as a generic 2D-function
+              visualizer
+            </li>
+          </ul>
+        </li>
+        <li>
+          <code><a href="ludecomposition.h">ludecomposition.h</a></code> -
+          a linear equation system solver for uBlas, using
+          LU decomposition. I've heard that there's now a solver included in uBlas itself, though.
+          <ul>
+            <li>
+            <em>The package also contains a crude Gauss elimination solver </em>, <code><a href="gauss-elim.h">gauss-elim.h</a></code>, but the LU decomposition is faster
+            (and the code is also cleaner) so use it only if you run into numerical problems
+            with LU.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <code><a href="linalg3d.h">linalg3d.h</a></code> - a one
+          file long linear algebra library for simple 3D
+          applications in C++. (uBlas is not very handly for simple
+          3D). Features:
+          <ul>
+            <li>
+              scale and translation matrices, rotation matrices
+              from euler angles and orientation vectors
+            </li>
+            <li>
+              transforming 3-vectors with 4x4 matrices
+            </li>
+            <li>
+              dot and cross product, norm and abs (length) of
+              3-vectors
+            </li>
+            <li>
+              simple plane-vector classification
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+
+
+    <p>
+      The binary program only consists of one executable file and
+      doesn't need any texture, model or other data files. To build
+      and run it on a unix variant (with OGL and Boost installed of
+      course), simply type:
+    </p>
+    <div class="menu">
+      <blockquote>
+        <code>g++ -c -O2 main.cpp &amp;&amp; g++ main.o -lglut -lGL -lGLU -o tpsdemo &amp;&amp; ./tpsdemo</code>
+      </blockquote>
+    </div>
+    <h3>
+      License
+    </h3>
+    <blockquote>
+      <p>
+        <code>Copyright (C) 2003, 2004 by Jarno Elonen</code>
+      </p>
+      <p>
+        TPSDemo is Free Software / Open Source with a very
+        permissive license:
+      </p>
+      <p>
+        Permission to use, copy, modify, distribute and sell this
+        software and its documentation for any purpose is hereby
+        granted without fee, provided that the above copyright
+        notice appear in all copies and that both that copyright
+        notice and this permission notice appear in supporting
+        documentation. The authors make no representations about
+        the suitability of this software for any purpose. It is
+        provided "as is" without express or implied warranty.
+      </p>
+    </blockquote>
+    <p>
+      (This page and images on it count as documentation of the
+      software and are thus under the same license.)
+    </p>
+  </body>
+</html>
