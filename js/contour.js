@@ -161,7 +161,7 @@ Grid.prototype.cut_zlevel = function(zvalue, zlevels) {
                     // end so that is examinated again in the loop in case it
                     // needs to be broken again.
                     this.faces.push(new_faces[1]);
-                    fvert = -1;
+                    break;
                 }
             }
         }
