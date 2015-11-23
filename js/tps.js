@@ -20,7 +20,7 @@ var tps_interpolation_fn = function(w, control_points, normalize) {
         var x = normalize(xr), y = normalize(yr);
         var N = control_points.rows();
         var h = w.e(N+1) + x * w.e(N+2) + y * w.e(N+3);
-        for (var i = 1; i < N; i++) {
+        for (var i = 1; i <= N; i++) {
             var xi = control_points.e(i, 1), yi = control_points.e(i, 2);
             var elen = Math.sqrt((xi - x)*(xi - x) + (yi - y)*(yi - y));
             h += w.e(i) * tps_radial(elen);
@@ -81,13 +81,14 @@ var tps_fit = function(data, param) {
     var Linv = L.inverse();
     var w = Linv.multiply(V);
     var fn = tps_interpolation_fn(w, control_points, norm);
-    console.log(V.inspect());
-    console.log("Coefficients:", w.inspect());
-    console.log("Solution check:", L.multiply(w).inspect());
+
+    // Log the results of the fit. Only for debugging purpose.
+    var result = [];
     for (var i = 1; i <= N; i++) {
         var x = data.e(i, xindex), y = data.e(i, yindex);
-        console.log(">>", i, x, y, fn(x, y));
+        result[i-1] = [x, y, data.e(i, param.zindex), fn(x, y)];
     }
+    console.log(Matrix.create(result).inspect());
     return fn;
 };
 

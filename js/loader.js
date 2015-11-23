@@ -34,7 +34,7 @@ var onLoadFile = function(evt) {
                 data.push(line);
             }
             var dframe = DataFrame.create(data, headers);
-            var tps_param = {regularization: 0.05, zindex: 1, normalize: normalize30};
+            var tps_param = {regularization: 0.02, zindex: 1, normalize: normalize30};
             var fn = MYAPP.tps_fit(dframe, tps_param);
             MYAPP.load_wafer_function(fn)
     }
