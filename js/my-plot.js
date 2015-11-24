@@ -48,8 +48,7 @@ var gen_carrier_geometry = function(plot, height) {
 
 
 var add_geometry_to_scene = function(plot, scene, geometry, color) {
-	// var material = new THREE.MeshPhongMaterial( { color: color, specular: 0xdddddd, shininess: 30, shading: THREE.SmoothShading, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 0.8 } )
-	var material = new THREE.MeshBasicMaterial( { color: color, polygonOffset: true, polygonOffsetFactor: 0.8 } )
+	var material = new THREE.MeshLambertMaterial( { color: color, polygonOffset: true, polygonOffsetFactor: 0.8 } )
 	var mesh = new THREE.Mesh( geometry, material );
 	mesh.matrix.copy(plot.norm_matrix);
 	mesh.matrixAutoUpdate = false;
@@ -96,7 +95,7 @@ var new_plot3d_scene = function(plot) {
 	var zmin = plot.zlevels[0], zmax = plot.zlevels[plot.zlevels.length - 1];
 
 	if (plot.dataset) {
-		var points = create_points(plot.dataset, plot.norm_matrix, 0x0000ff, zselect_dataset(plot.dataset));
+		var points = create_points(plot.dataset, plot.norm_matrix, 0x8888ff, zselect_dataset(plot.dataset));
 		scene.add(points);
 
 		var proj = create_points(plot.dataset, plot.norm_matrix, 0x000000, zselect_proj(plot.dataset, plot.zfun));
@@ -104,6 +103,8 @@ var new_plot3d_scene = function(plot) {
 	}
 
 	var carrier = gen_carrier_geometry(plot, zmin - (zmax - zmin));
+	carrier.computeFaceNormals();
+	carrier.computeVertexNormals();
 	add_geometry_to_scene(plot, scene, carrier, 0xbbbbbb);
 
 	var zlevels = plot.zlevels;
@@ -115,13 +116,14 @@ var new_plot3d_scene = function(plot) {
 
 	for (var i = 0; i < zlevels.length - 1; i++) {
 		var geometry = grid.select_zlevel(zlevels[i], zlevels[i+1], zlevels);
-		// geometry.computeFaceNormals();
-		// geometry.computeVertexNormals();
+		geometry.computeFaceNormals();
+		geometry.computeVertexNormals();
 		add_geometry_to_scene(plot, scene, geometry, color_level9[i]);
 	}
 
-	add_pointlight(scene, 0xffffff, new THREE.Vector3(1, 3, 5));
-
+	add_pointlight(scene, 0x888888, new THREE.Vector3(1, 3, 5));
+	add_pointlight(scene, 0x888888, new THREE.Vector3(-1, -3, 5));
+	scene.add(new THREE.AmbientLight(0x333333));
 	return scene;
 };
 
