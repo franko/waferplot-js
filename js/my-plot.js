@@ -62,10 +62,47 @@ var add_pointlight = function(scene, color, pos) {
 	scene.add(pointLight);
 };
 
+var create_points = function(dataset, norm_matrix, color, zselect) {
+	var points_geo = new THREE.Geometry();
+	for (var i = 1; i <= dataset.rows(); i++) {
+		points_geo.vertices.push(zselect(i));
+	}
+	var points_mat = new THREE.PointsMaterial({color: color, size: 3, sizeAttenuation: false});
+	var points = new THREE.Points(points_geo, points_mat);
+	points.matrix.copy(norm_matrix);
+	points.matrixAutoUpdate = false;
+	return points;
+};
+
+var zselect_dataset = function(dataset) {
+	var dsx = dataset.colIndexOf("x"), dsy = dataset.colIndexOf("y"), dsz = 1;
+	return function(i) {
+		var x = dataset.e(i, dsx), y = dataset.e(i, dsy), z = dataset.e(i, dsz);
+		return new THREE.Vector3(x, y, z);
+	};
+};
+
+var zselect_proj = function(dataset, zfun) {
+	var dsx = dataset.colIndexOf("x"), dsy = dataset.colIndexOf("y");
+	return function(i) {
+		var x = dataset.e(i, dsx), y = dataset.e(i, dsy);
+		return new THREE.Vector3(x, y, zfun(x, y));
+	};
+};
+
 var new_plot3d_scene = function(plot) {
 	var scene = new THREE.Scene();
 
 	var zmin = plot.zlevels[0], zmax = plot.zlevels[plot.zlevels.length - 1];
+
+	if (plot.dataset) {
+		var points = create_points(plot.dataset, plot.norm_matrix, 0x0000ff, zselect_dataset(plot.dataset));
+		scene.add(points);
+
+		var proj = create_points(plot.dataset, plot.norm_matrix, 0x000000, zselect_proj(plot.dataset, plot.zfun));
+		scene.add(proj);
+	}
+
 	var carrier = gen_carrier_geometry(plot, zmin - (zmax - zmin));
 	add_geometry_to_scene(plot, scene, carrier, 0xbbbbbb);
 
@@ -106,7 +143,7 @@ var render = function () {
 	update();
 };
 
-var new_plot = function(zfun) {
+var new_plot = function(zfun, dataset) {
 	var Nx = 80, Ny = 80, Dx = 5, Dy = 5;
 
 	var xyeval = function(i, j, action) {
@@ -142,14 +179,15 @@ var new_plot = function(zfun) {
 		xygen: xygen,
 		zfun: zfun,
 		zlevels: zlevels,
+		dataset: dataset,
 		norm_matrix: mat,
 	};
 
 	return plot;
 };
 
-MYAPP.load_wafer_function = function(zfun) {
-	var plot = new_plot(zfun);
+MYAPP.load_wafer_function = function(zfun, dataset) {
+	var plot = new_plot(zfun, dataset);
 	MYAPP.scene = new_plot3d_scene(plot);
 };
 
