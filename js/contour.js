@@ -1,3 +1,4 @@
+MYAPP = {};
 
 var Grid = function(nx, ny, grid_gen, zfun) {
     this.vertices = [];

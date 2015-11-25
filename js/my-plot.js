@@ -1,5 +1,3 @@
-MYAPP = {};
-
 var iwidth = 800, iheight = 600;
 var camera = new THREE.PerspectiveCamera( 75, iwidth/iheight, 0.1, 1000 );
 
@@ -11,8 +9,13 @@ container.appendChild( renderer.domElement );
 
 var controls = new THREE.OrbitControls( camera, renderer.domElement );
 
-var color_level9_i = [0xd73027, 0xf46d43 ,0xfdae61, 0xfee08b, 0xffffbf, 0xd9ef8b, 0xa6d96a, 0x66bd63, 0x1a9850];
-var color_level9 = []; for (var i = 0; i < 9; i++) color_level9[i] = color_level9_i[8 - i];
+var color_level = [];
+color_level[6] = [0x1a9850, 0x91cf60, 0xd9ef8b, 0xfee08b, 0xfc8d59, 0xd73027];
+color_level[7] = [0x1a9850, 0x91cf60, 0xd9ef8b, 0xffffbf, 0xfee08b, 0xfc8d59, 0xd73027];
+color_level[8] = [0x1a9850, 0x66bd63, 0xa6d96a, 0xd9ef8b, 0xfee08b, 0xfdae61, 0xf46d43 ,0xd73027];
+color_level[9] = [0x1a9850, 0x66bd63, 0xa6d96a, 0xd9ef8b, 0xffffbf, 0xfee08b, 0xfdae61, 0xf46d43 ,0xd73027];
+
+var get_colormap = function(n) { return color_level[n < 6 ? 6 : (n < 9 ? n: 9)]; }
 
 var gen_carrier_geometry = function(plot, height) {
 	var Nx = plot.Nx, Ny = plot.Ny;
@@ -115,11 +118,12 @@ var new_plot3d_scene = function(plot) {
 		grid.cut_zlevel(zlevels[i], zlevels);
 	}
 
+	var colormap = get_colormap(zlevels.length - 1);
 	for (var i = 0; i < zlevels.length - 1; i++) {
 		var geometry = grid.select_zlevel(zlevels[i], zlevels[i+1], zlevels);
 		geometry.computeFaceNormals();
 		geometry.computeVertexNormals();
-		add_geometry_to_scene(plot, scene, geometry, color_level9[i]);
+		add_geometry_to_scene(plot, scene, geometry, colormap[i]);
 	}
 
 	add_pointlight(scene, 0x888888, new THREE.Vector3(1, 3, 5));
@@ -165,8 +169,12 @@ var new_plot = function(zfun, dataset) {
 		}
 	}
 
+	var ZLEVEL_NUMBER = 9;
+	var zdiv = MYAPP.scale_units(zmin, zmax, ZLEVEL_NUMBER - 1);
+	var z1 = Math.floor(zmin / zdiv) * zdiv, z2 = Math.ceil(zmax / zdiv) * zdiv;
+
 	var zlevels = [];
-	for (var i = 0; i < 10; i++) { zlevels.push(zmin + i * (zmax - zmin) / 9); }
+	for (var zcurr = z1; zcurr <= z2; zcurr += zdiv) { zlevels.push(zcurr); }
 
 	var xygen = function(i, j, zfun) {
 		return xyeval(i, j, function(x, y) { return new THREE.Vector3(x, y, zfun(x, y)); });
