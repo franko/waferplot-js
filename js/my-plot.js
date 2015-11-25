@@ -14,8 +14,9 @@ color_level[6] = [0x1a9850, 0x91cf60, 0xd9ef8b, 0xfee08b, 0xfc8d59, 0xd73027];
 color_level[7] = [0x1a9850, 0x91cf60, 0xd9ef8b, 0xffffbf, 0xfee08b, 0xfc8d59, 0xd73027];
 color_level[8] = [0x1a9850, 0x66bd63, 0xa6d96a, 0xd9ef8b, 0xfee08b, 0xfdae61, 0xf46d43 ,0xd73027];
 color_level[9] = [0x1a9850, 0x66bd63, 0xa6d96a, 0xd9ef8b, 0xffffbf, 0xfee08b, 0xfdae61, 0xf46d43 ,0xd73027];
-
-var get_colormap = function(n) { return color_level[n < 6 ? 6 : (n < 9 ? n: 9)]; }
+color_level[10] = [0x006837, 0x1a9850, 0x66bd63, 0xa6d96a, 0xd9ef8b, 0xfee08b, 0xfdae61, 0xf46d43, 0xd73027, 0xa50026];
+color_level[11] = [0x006837, 0x1a9850, 0x66bd63, 0xa6d96a, 0xd9ef8b, 0xffffbf, 0xfee08b, 0xfdae61, 0xf46d43, 0xd73027, 0xa50026];
+var get_colormap = function(n) { return color_level[n < 6 ? 6 : (n < 11 ? n: 11)]; }
 
 var gen_carrier_geometry = function(plot, height) {
 	var Nx = plot.Nx, Ny = plot.Ny;
@@ -169,8 +170,8 @@ var new_plot = function(zfun, dataset) {
 		}
 	}
 
-	var ZLEVEL_NUMBER = 9;
-	var zdiv = MYAPP.scale_units(zmin, zmax, ZLEVEL_NUMBER - 1);
+	var ZLEVEL_NUMBER = 11;
+	var zdiv = MYAPP.scale_units(zmin, zmax, ZLEVEL_NUMBER);
 	var z1 = Math.floor(zmin / zdiv) * zdiv, z2 = Math.ceil(zmax / zdiv) * zdiv;
 
 	var zlevels = [];
