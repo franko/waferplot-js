@@ -133,10 +133,11 @@ var new_plot3d_scene = function(plot) {
 	return scene;
 };
 
+var CAMERA_DIST = 2.0, CAMERA_ANGLE = 30 * Math.PI / 180;
 var point_camera = function(scene) {
-	camera.position.x = 2;
-	camera.position.y = -2;
-	camera.position.z = 0;
+	camera.position.x = 0;
+	camera.position.y = - CAMERA_DIST * Math.cos(CAMERA_ANGLE);
+	camera.position.z = + CAMERA_DIST * Math.sin(CAMERA_ANGLE);
 	camera.lookAt(scene.position);
 };
 
