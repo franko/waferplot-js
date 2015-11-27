@@ -94,6 +94,21 @@ var zselect_proj = function(dataset, zfun) {
 	};
 };
 
+var plot3d_legend = function(plot, width, heigh) {
+	var cameraOrtho = new THREE.OrthographicCamera( - width / 2, width / 2, height / 2, - height / 2, 1, 10 );
+	cameraOrtho.position.z = 10;
+
+	var sceneOrtho = new THREE.Scene();
+
+	var legend_texture = CONTOUR.create_legend_texture(plot.zlevels);
+	var mat = new THREE.SpriteMaterial({map: legend_texture});
+	var legend = new THREE.Sprite(mat);
+	legend.scale.set(met.map.image.width, mat.map.image.height, 1)
+	legend.position.set(1, 0, 0);
+	scene.add(legend);
+
+};
+
 var new_plot3d_scene = function(plot) {
 	var scene = new THREE.Scene();
 

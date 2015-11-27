@@ -1,5 +1,20 @@
 MYAPP = {};
 
+var create_legend_texture = function(zlevels) {
+    var canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    var context = canvas.getContext('2d');
+    context.font = "12px Arial";
+    context.fillStyle = "rgba(0, 0, 0, 1.0)";
+    for (var i = 0; i < zlevels.length; i++) {
+        context.fillText(String(zlevels[i]), 10, 10 + i * (12 + 5));
+    }
+    var texture = new THREE.Texture(canvas);
+    texture.needsUpdate = true;
+    return texture;
+};
+
 var Grid = function(nx, ny, grid_gen, zfun) {
     this.vertices = [];
     for (var i = 0; i <= nx; i++) {
@@ -203,4 +218,4 @@ Grid.prototype.select_zlevel = function(zvalue1, zvalue2, zlevels) {
     return threegeo;
 };
 
-CONTOUR = { Grid: Grid };
+CONTOUR = {Grid: Grid, create_legend_texture: create_legend_texture};
