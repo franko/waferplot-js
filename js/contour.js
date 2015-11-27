@@ -203,4 +203,4 @@ Grid.prototype.select_zlevel = function(zvalue1, zvalue2, zlevels) {
     return threegeo;
 };
 
-CONTOUR = { Grid: Grid };
+CONTOUR = {Grid: Grid};
