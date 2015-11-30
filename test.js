@@ -10,10 +10,34 @@ var cube = new THREE.Mesh( geometry, material );
 scene.add( cube );
 camera.position.z = 5;
 
-var render = function() {
-	requestAnimationFrame( render );
-	cube.rotation.x += 0.01; cube.rotation.y += 0.01;
-	renderer.render( scene, camera );
+var ok = false;
+
+var create_sprite = function(texture) {
+	var sprite_mat = new THREE.SpriteMaterial( {map: texture} );
+
+	var width = sprite_mat.map.image.width;
+	var height = sprite_mat.map.image.height;
+
+	var sprite = new THREE.Sprite( sprite_mat );
+	sprite.scale.set( width, height, 1 );
+	sprite.position.set( 0, 0, 3 );
+
+	scene.add(sprite);
+
+	ok = true;
 };
 
+var init = function() {
+	var img_texture = THREE.ImageUtils.loadTexture( "textures/sprite0.png", undefined, create_sprite );
+};
+
+var render = function() {
+	requestAnimationFrame( render );
+	if (ok) {
+		cube.rotation.x += 0.01; cube.rotation.y += 0.01;
+		renderer.render( scene, camera );
+	}
+};
+
+init();
 render();
