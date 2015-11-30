@@ -10,8 +10,6 @@ var cube = new THREE.Mesh( geometry, material );
 scene.add( cube );
 camera.position.z = 5;
 
-var ok = false;
-
 var create_sprite = function(texture) {
 	var sprite_mat = new THREE.SpriteMaterial( {map: texture} );
 
@@ -19,24 +17,35 @@ var create_sprite = function(texture) {
 	var height = sprite_mat.map.image.height;
 
 	var sprite = new THREE.Sprite( sprite_mat );
-	sprite.scale.set( width, height, 1 );
-	sprite.position.set( 0, 0, 3 );
+	sprite.scale.set( 3, 3, 1 );
+	sprite.position.set( 0, 0, 0 );
 
 	scene.add(sprite);
-
-	ok = true;
 };
 
 var init = function() {
-	var img_texture = THREE.ImageUtils.loadTexture( "textures/sprite0.png", undefined, create_sprite );
+    var canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    var context = canvas.getContext('2d');
+    context.fillStyle = "#8888ff";
+    context.fillRect(0, 0, 256, 256);
+
+    context.font = "20px Arial";
+    context.fillStyle = "#00ff00";
+	context.fillText("Hello!", 10, 100);
+
+	document.body.appendChild(canvas);
+
+    var texture = new THREE.Texture(canvas);
+    texture.needsUpdate = true;
+    create_sprite(texture);
 };
 
 var render = function() {
 	requestAnimationFrame( render );
-	if (ok) {
-		cube.rotation.x += 0.01; cube.rotation.y += 0.01;
-		renderer.render( scene, camera );
-	}
+	cube.rotation.x += 0.01; cube.rotation.y += 0.01;
+	renderer.render( scene, camera );
 };
 
 init();
