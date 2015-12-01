@@ -302,7 +302,16 @@ var new_plot_example = function() {
 };
 
 var zfun_example = function(x, y) { var u=x/150, v=y/150; return 25 * 18*(u*u + 0.02)*Math.exp(-10*(u*u+v*v)); };
-var plot_example = new_plot(zfun_example);
+var normal_fun_example = function(x, y) {
+	var u = x / 150, v = y / 150;
+	var A = 25 * 18, b = 0.02, s = 10;
+	var exp = Math.exp(-s*(u*u+v*v));
+	var dzdx = (2 * A * (u - s * u * (u*u + b)) * exp) / 150;
+	var dzdy = (- 2 * A * s * v * (u*u + b) * exp) / 150;
+	var nf = Math.sqrt(1 + dzdx*dzdx + dzdy*dzdy);
+	return new THREE.Vector3(-dzdx / nf, -dzdy / nf, 1 / nf);
+};
+var plot_example = new_plot(zfun_example, normal_fun_example);
 MYAPP.scene = new_plot3d_scene(plot_example);
 
 point_camera(MYAPP.scene);
