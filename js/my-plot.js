@@ -169,6 +169,29 @@ var plot3d_legend_scene = function(plot, width, height) {
 	return sceneOrtho;
 };
 
+var plot3d_compute_normals = function(geometry, normal_fun) {
+	var normals = [];
+	for (var v = 0; v < geometry.vertices.length; v++) {
+		var vert = geometry.vertices[v];
+		normals[v] = normal_fun(vert.x, vert.y);
+	}
+	for (var f = 0; f < geometry.faces.length; f++) {
+		var face = geometry.faces[f];
+		var vertex_normals = face.vertexNormals;
+		vertex_normals[0] = normals[face.a].clone();
+		vertex_normals[1] = normals[face.b].clone();
+		vertex_normals[2] = normals[face.c].clone();
+
+		var va = geometry.vertices[face.a];
+		var vb = geometry.vertices[face.b];
+		var vc = geometry.vertices[face.c];
+		var xcent = (va.x + vb.x + vc.x) / 3, ycent = (va.y + vb.y + vc.y) / 3;
+
+		face.normal.copy(normal_fun(xcent, ycent));
+	}
+	geometry.normalsNeedUpdate = true;
+};
+
 var new_plot3d_scene = function(plot) {
 	var scene = new THREE.Scene();
 
@@ -197,8 +220,12 @@ var new_plot3d_scene = function(plot) {
 	var colormap = get_colormap(zlevels.length - 1);
 	for (var i = 0; i < zlevels.length - 1; i++) {
 		var geometry = grid.select_zlevel(zlevels[i], zlevels[i+1], zlevels);
-		geometry.computeFaceNormals();
-		geometry.computeVertexNormals();
+		if (plot.normal_fun) {
+			plot3d_compute_normals(geometry, plot.normal_fun);
+		} else {
+			geometry.computeFaceNormals();
+			geometry.computeVertexNormals();
+		}
 		add_geometry_to_scene(plot, scene, geometry, colormap[i]);
 	}
 
@@ -216,7 +243,7 @@ var point_camera = function(scene) {
 	camera.lookAt(scene.position);
 };
 
-var new_plot = function(zfun, dataset) {
+var new_plot = function(zfun, normal_fun, dataset) {
 	var Nx = 80, Ny = 80, Dx = 5, Dy = 5;
 
 	var xyeval = function(i, j, action) {
@@ -255,6 +282,7 @@ var new_plot = function(zfun, dataset) {
 		Ny: Ny,
 		xygen: xygen,
 		zfun: zfun,
+		normal_fun: normal_fun,
 		zlevels: zlevels,
 		dataset: dataset,
 		norm_matrix: mat,
@@ -263,8 +291,8 @@ var new_plot = function(zfun, dataset) {
 	return plot;
 };
 
-MYAPP.load_wafer_function = function(zfun, dataset) {
-	var plot = new_plot(zfun, dataset);
+MYAPP.load_wafer_function = function(zfun, normal_fun, dataset) {
+	var plot = new_plot(zfun, normal_fun, dataset);
 	MYAPP.scene = new_plot3d_scene(plot);
 	MYAPP.sceneHUD = plot3d_legend_scene(plot, iwidth, iheight);
 };

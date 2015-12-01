@@ -3,6 +3,11 @@ var tps_radial = function(r) {
     return (r <= 0 ? 0 : r*r*Math.log(r));
 };
 
+
+var tps_radial_der = function(r) {
+    return r*(1 + 2 * Math.log(r));
+};
+
 var mat_data = function(r, c) {
     var es = [];
     for (var i = 0; i < r; i++) {
@@ -26,6 +31,27 @@ var tps_interpolation_fn = function(w, control_points, normalize) {
             h += w.e(i) * tps_radial(elen);
         }
         return h;
+    };
+};
+
+var tps_interpolation_normal_fn = function(w, control_points, normalize) {
+    return function(xr, yr) {
+        var x = normalize(xr), y = normalize(yr);
+        var N = control_points.rows();
+        var dzdx = w.e(N+2), dzdy = w.e(N+3);
+        for (var i = 1; i <= N; i++) {
+            var xi = control_points.e(i, 1), yi = control_points.e(i, 2);
+            var r = Math.sqrt((xi - x)*(xi - x) + (yi - y)*(yi - y));
+            var dudr = tps_radial_der(r);
+            if (r > 0) {
+                dzdx += w.e(i) * dudr * (x - xi) / r;
+                dzdy += w.e(i) * dudr * (y - yi) / r;
+            }
+        }
+        dzdx *= normalize(1);
+        dzdy *= normalize(1);
+        var nf = Math.sqrt(1 + dzdx*dzdx + dzdy*dzdy);
+        return new THREE.Vector3(-dzdx / nf, -dzdy / nf, 1 / nf);
     };
 };
 
@@ -81,6 +107,7 @@ var tps_fit = function(data, param) {
     var Linv = L.inverse();
     var w = Linv.multiply(V);
     var fn = tps_interpolation_fn(w, control_points, norm);
+    var normal_fn = tps_interpolation_normal_fn(w, control_points, norm);
 
     // Log the results of the fit. Only for debugging purpose.
     var result = [];
@@ -89,7 +116,7 @@ var tps_fit = function(data, param) {
         result[i-1] = [x, y, data.e(i, param.zindex), fn(x, y)];
     }
     console.log(Matrix.create(result).inspect());
-    return fn;
+    return {eval: fn, eval_normal: normal_fn};
 };
 
 MYAPP.tps_fit = tps_fit;
