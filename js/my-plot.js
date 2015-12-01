@@ -4,7 +4,7 @@ var camera = new THREE.PerspectiveCamera( 75, iwidth/iheight, 0.1, 1000 );
 var cameraOrtho = new THREE.OrthographicCamera( - iwidth / 2, iwidth / 2, iheight / 2, - iheight / 2, -10, 10 );
 cameraOrtho.position.z = 10;
 
-var renderer = new THREE.WebGLRenderer();
+var renderer = new THREE.WebGLRenderer({antialias: true, sortObjects: false});
 renderer.setSize(iwidth, iheight);
 renderer.setClearColor(0xffffff);
 renderer.autoClear = false; // To allow render overlay on top of sprited sphere
@@ -180,7 +180,7 @@ var new_plot3d_scene = function(plot) {
 		scene.add(proj);
 	}
 
-	var carrier = gen_carrier_geometry(plot, zmin - (zmax - zmin));
+	var carrier = gen_carrier_geometry(plot, zmin - (zmax - zmin) / 3);
 	carrier.computeFaceNormals();
 	carrier.computeVertexNormals();
 	add_geometry_to_scene(plot, scene, carrier, 0xbbbbbb);
