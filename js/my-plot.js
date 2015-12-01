@@ -220,12 +220,7 @@ var new_plot3d_scene = function(plot) {
 	var colormap = get_colormap(zlevels.length - 1);
 	for (var i = 0; i < zlevels.length - 1; i++) {
 		var geometry = grid.select_zlevel(zlevels[i], zlevels[i+1], zlevels);
-		if (plot.normal_fun) {
-			plot3d_compute_normals(geometry, plot.normal_fun);
-		} else {
-			geometry.computeFaceNormals();
-			geometry.computeVertexNormals();
-		}
+		plot3d_compute_normals(geometry, plot.normal_fun);
 		add_geometry_to_scene(plot, scene, geometry, colormap[i]);
 	}
 
@@ -265,6 +260,7 @@ var new_plot = function(zfun, normal_fun, dataset) {
 	var ZLEVEL_NUMBER = 11;
 	var zdiv = MYAPP.scale_units(zmin, zmax, ZLEVEL_NUMBER);
 	var z1 = Math.floor(zmin / zdiv) * zdiv, z2 = Math.ceil(zmax / zdiv) * zdiv;
+	if (z2 == z1) z2 += zdiv;
 
 	var zlevels = [];
 	for (var zcurr = z1; zcurr <= z2; zcurr += zdiv) { zlevels.push(zcurr); }
@@ -275,7 +271,7 @@ var new_plot = function(zfun, normal_fun, dataset) {
 
 	var offset = new THREE.Matrix4().setPosition(new THREE.Vector3(0, 0, -zmin));
 	var Z_SHRINK_FACTOR = 3;
-	var mat = new THREE.Matrix4().makeScale(1/150, 1/150, 1/(Z_SHRINK_FACTOR * (zmax - zmin))).multiply(offset);
+	var mat = new THREE.Matrix4().makeScale(1/150, 1/150, 1/(Z_SHRINK_FACTOR * (z2 - z1))).multiply(offset);
 
 	var plot = {
 		Nx: Nx,
@@ -297,21 +293,9 @@ MYAPP.load_wafer_function = function(zfun, normal_fun, dataset) {
 	MYAPP.sceneHUD = plot3d_legend_scene(plot, iwidth, iheight);
 };
 
-var new_plot_example = function() {
-	return new_plot(zfun);
-};
-
-var zfun_example = function(x, y) { var u=x/150, v=y/150; return 25 * 18*(u*u + 0.02)*Math.exp(-10*(u*u+v*v)); };
-var normal_fun_example = function(x, y) {
-	var u = x / 150, v = y / 150;
-	var A = 25 * 18, b = 0.02, s = 10;
-	var exp = Math.exp(-s*(u*u+v*v));
-	var dzdx = (2 * A * (u - s * u * (u*u + b)) * exp) / 150;
-	var dzdy = (- 2 * A * s * v * (u*u + b) * exp) / 150;
-	var nf = Math.sqrt(1 + dzdx*dzdx + dzdy*dzdy);
-	return new THREE.Vector3(-dzdx / nf, -dzdy / nf, 1 / nf);
-};
-var plot_example = new_plot(zfun_example, normal_fun_example);
+var zfun0 = function(x, y) { return 0; };
+var normal_fun0 = function(x, y) {return new THREE.Vector3(0, 0, 1); };
+var plot_example = new_plot(zfun0, normal_fun0);
 MYAPP.scene = new_plot3d_scene(plot_example);
 
 point_camera(MYAPP.scene);

@@ -2,7 +2,8 @@
 var deltas = [1, 2, 2.5, 3, 5, 6, 8, 9, 10];
 
 var find_units = function(xmin, xmax, ndiv) {
-	var xdelta = (xmax != xmin ? Math.abs(xmax - xmin) : 1);
+	var xdelta = Math.abs(xmax - xmin);
+	if (xdelta < 1.0e-48) xdelta = 1;
 	var dx = xdelta / ndiv;
 	var plog = Math.floor(Math.log10(dx));
 	var p = Math.pow(10, plog);
