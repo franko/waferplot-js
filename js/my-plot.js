@@ -291,6 +291,7 @@ MYAPP.load_wafer_function = function(zfun, normal_fun, dataset) {
 	var plot = new_plot(zfun, normal_fun, dataset);
 	MYAPP.scene = new_plot3d_scene(plot);
 	MYAPP.sceneHUD = plot3d_legend_scene(plot, iwidth, iheight);
+	render();
 };
 
 var zfun0 = function(x, y) { return 0; };
@@ -300,19 +301,21 @@ MYAPP.scene = new_plot3d_scene(plot_example);
 
 point_camera(MYAPP.scene);
 
-var update = function() {
-	controls.update();
-}
-
-var render = function () {
-	requestAnimationFrame( render );
+var render = function() {
 	renderer.clear();
 	renderer.render(MYAPP.scene, camera);
 	renderer.clearDepth();
 	if (MYAPP.sceneHUD) {
 		renderer.render(MYAPP.sceneHUD, cameraOrtho);
 	}
-	update();
 };
 
+controls.addEventListener('change', render);
+
+var animate = function() {
+	requestAnimationFrame(animate);
+	controls.update();
+}
+
 render();
+animate();
