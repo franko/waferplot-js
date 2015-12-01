@@ -81,37 +81,39 @@ var create_legend_texture = function(zlevels) {
     var text_height = 14;
 	var th_spacing = text_height;
 	var text_yoffs = text_height / 3;
-	var canvas_y = function(i) { return height - 4 - i * (text_height + th_spacing); };
+	var canvas_y = function(i) { return height - 4 - i * (text_height + th_spacing) - text_yoffs; };
 
 	var colormap = get_colormap(zlevels.length - 1);
 
 	var ww = text_height + th_spacing, hh = text_height;
     for (var i = 0; i < zlevels.length; i++) {
-		context.fillText(String(zlevels[i]), 4, canvas_y(i));
+		var y1 = canvas_y(i), y2 = canvas_y(i + 1);
+		var x0 = 4, x1 = x0 + text_width + 12, x2 = x1 + ww;
+
+		context.fillStyle = '#000';
+		context.fillText(String(zlevels[i]), x0, y1 + text_yoffs);
+
+		context.beginPath();
+		context.moveTo(x1 - 4, y1);
+		context.lineTo(x2, y1);
+		context.stroke();
+
 		if (i + 1 < zlevels.length) {
 			context.fillStyle = rgba_string(colormap[i]);
-			context.fillRect(text_width + 12, canvas_y(i) - text_yoffs, ww, canvas_y(i+1) - canvas_y(i));
+			context.fillRect(x1, y1, ww, y2 - y1);
 
 			context.fillStyle = '#000';
-			context.beginPath();
-			context.moveTo(text_width + 8, canvas_y(i) - text_yoffs);
-			context.lineTo(text_width + 12 + ww, canvas_y(i) - text_yoffs);
-			context.lineTo(text_width + 12 + ww, canvas_y(i+1) - text_yoffs);
-			context.moveTo(text_width + 12, canvas_y(i) - text_yoffs);
-			context.lineTo(text_width + 12, canvas_y(i+1) - text_yoffs);
-			context.stroke();
-
-		} else {
-			context.fillStyle = '#000';
-			context.moveTo(text_width + 8, canvas_y(i) - text_yoffs);
-			context.lineTo(text_width + 12 + ww, canvas_y(i) - text_yoffs);
+			context.moveTo(x2, y1);
+			context.lineTo(x2, y2);
+			context.moveTo(x1, y1);
+			context.lineTo(x1, y2);
 			context.stroke();
 		}
     }
 
     var texture = new THREE.Texture(canvas);
     texture.needsUpdate = true;
-    return {texture: texture, width: text_width + 12 + ww, height: (text_height + th_spacing) * zlevels.length + text_yoffs};
+    return {texture: texture, width: text_width + 12 + ww, height: (text_height + th_spacing) * zlevels.length};
 };
 
 var add_geometry_to_scene = function(plot, scene, geometry, color) {
@@ -162,7 +164,7 @@ var plot3d_legend_scene = function(plot, width, height) {
 	var material = new THREE.SpriteMaterial({map: legend.texture});
 	var sprite = new THREE.Sprite(material);
 	sprite.scale.set(material.map.image.width, material.map.image.height, 1);
-	sprite.position.set(width / 2 + material.map.image.width / 2 - legend.width, material.map.image.height / 2 - legend.height / 2, 0);
+	sprite.position.set(width / 2 + material.map.image.width / 2 - legend.width - 20, material.map.image.height / 2 - legend.height / 2, 0);
 	sceneOrtho.add(sprite);
 	return sceneOrtho;
 };
