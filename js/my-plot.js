@@ -259,11 +259,12 @@ var new_plot = function(zfun, normal_fun, dataset) {
 
 	var ZLEVEL_NUMBER = 11;
 	var zdiv = MYAPP.scale_units(zmin, zmax, ZLEVEL_NUMBER);
-	var z1 = Math.floor(zmin / zdiv) * zdiv, z2 = Math.ceil(zmax / zdiv) * zdiv;
-	if (z2 == z1) z2 += zdiv;
+	var zindex1 = Math.floor(zmin / zdiv), zindex2 = Math.ceil(zmax / zdiv);
+	if (zindex2 <= zindex1) zindex2 = zindex1 + 1;
+	var zrange = (zindex2 - zindex1) * zdiv;
 
 	var zlevels = [];
-	for (var zcurr = z1; zcurr <= z2; zcurr += zdiv) { zlevels.push(zcurr); }
+	for (var zi = zindex1; zi <= zindex2; zi++) { zlevels.push(zi * zdiv); }
 
 	var xygen = function(i, j, zfun) {
 		return xyeval(i, j, function(x, y) { return new THREE.Vector3(x, y, zfun(x, y)); });
@@ -271,7 +272,7 @@ var new_plot = function(zfun, normal_fun, dataset) {
 
 	var offset = new THREE.Matrix4().setPosition(new THREE.Vector3(0, 0, -zmin));
 	var Z_SHRINK_FACTOR = 3;
-	var mat = new THREE.Matrix4().makeScale(1/150, 1/150, 1/(Z_SHRINK_FACTOR * (z2 - z1))).multiply(offset);
+	var mat = new THREE.Matrix4().makeScale(1/150, 1/150, 1/(Z_SHRINK_FACTOR * zrange)).multiply(offset);
 
 	var plot = {
 		Nx: Nx,
