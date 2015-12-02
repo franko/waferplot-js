@@ -1,5 +1,3 @@
-MYAPP = {};
-
 var Grid = function(nx, ny, grid_gen, zfun) {
     this.vertices = [];
     for (var i = 0; i <= nx; i++) {

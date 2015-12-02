@@ -4,10 +4,13 @@
         <title>My first Three.js app</title>
     </head>
     <body>
+        <script src="js/loader.js"></script>
         <input type="file" id="file-select" />
+        <div>
+        <select id="param_select" onChange="MYAPP.on_parameter()"></select>
+        </div>
         <div id="three-js"></div>
 
-        <script src="js/loader.js"></script>
         <script>
         document.getElementById('file-select').addEventListener('change', onFileSelection, false);
         </script>
