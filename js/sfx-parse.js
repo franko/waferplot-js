@@ -45,11 +45,10 @@ var csvReader = function(text) {
     return {next: next};
 };
 
-var generalTags = ['RECIPE', 'MEAS SET', 'SITE'];
-var sectionTags = ['SLOT', 'Tool', 'Time'];
+var generalTags = ['RECIPE', 'MEAS SET', 'SITE', 'SLOT'];
 
 var collectTag = function(tag) {
-    return generalTags.indexOf(tag) >= 0 || sectionTags.indexOf(tag) >= 0;
+    return generalTags.indexOf(tag) >= 0;
 };
 
 var tagsDoMatch = function(tagList, a, b) {
@@ -75,6 +74,12 @@ var clean_csv_string = function(s) {
         return s;
     }
 }
+
+var complete_headers = function(headers) {
+    headers[0] = "Site";
+    headers.push("X");
+    headers.push("Y");
+};
 
 FXParser = function(text, options) {
     this.reader = csvReader(text);
@@ -103,59 +108,34 @@ FXParser.prototype = {
         return 0;
     },
 
-    readMeasurements: function(attrs, headers) {
+    readMeasurements: function(headers) {
         var meas = [];
         for (var row = this.next(); row; row = this.next()) {
             if (!row[0]) break;
-            meas.push(attrs.concat(row));
+            meas.push(row);
         }
         return meas;
     },
 
-    // register all the measurement sections in this.measSections.
-    // Merge with un existing table if the values of the generalTags
-    // does match.
-    mergeMeasurements: function(info, meas, headers) {
-        for (var i = 0; i < this.measSections.length; i++) {
-            var section = this.measSections[i];
-            if (tagsDoMatch(generalTags, section.info, info)) {
-                var tableElements = section.table.elements;
-                for (var j = 0; j < meas.length; j++) {
-                    tableElements.push(meas[j]);
-                }
-                return;
-            }
-        }
-        var lookup = {"SLOT": "Wafer"}
-        var fullHeaders = sectionTags.map(function(d) { return lookup[d] || d; });
-        fullHeaders = fullHeaders.concat(headers);
-        var resultHeaders = headers.slice(1);
-        var table = DataFrame.create(meas, fullHeaders);
+    appendSection: function(info, meas, headers) {
+        var resultHeaders = headers.slice(1, headers.length - 2);
+        var table = DataFrame.create(meas, headers);
         this.measSections.push({info: info, table: table, resultHeaders: resultHeaders});
     },
 
     readSection: function(measInfo) {
-        var info = {Tool: measInfo.tool, Time: measInfo.time};
+        var info = {TOOL: measInfo.tool, TIME: measInfo.time};
         var headers;
         for (var row = this.next(); row; row = this.next()) {
             var key = row[0];
             if (key === "RESULT TYPE") {
                 headers = row.filter(not_empty_string).map(clean_csv_string);
-                headers[0] = "Site";
             } else if (collectTag(key)) {
                 info[key] = clean_csv_string(row[1]);
             } else if (key == "Site #") {
-                // Here "info" will contain information about the section:
-                // Tool, Time, RECIPE, MEAS SET, SITE and SLOT.
-                // The variable "headers" will contail the header of the
-                // columns with the measurement results.
-
-                // rowTags will contain the values for the sectionTags entries.
-                // These will be prepended in the following "meas" table to each
-                // measurement row.
-                var rowTags = sectionTags.map(function(d) { return info[d]; });
-                var meas = this.readMeasurements(rowTags, headers);
-                this.mergeMeasurements(info, meas, headers);
+                complete_headers(headers);
+                var meas = this.readMeasurements(headers);
+                this.appendSection(info, meas, headers);
                 return true;
             }
         }
