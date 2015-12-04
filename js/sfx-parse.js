@@ -2,11 +2,18 @@
 var list_tonumber = function(row) {
     for (var i = 0; i < row.length; i++) {
         var x = Number(row[i]);
-        if (!isNaN(x) && row[i] != "") {
+        if (!isNaN(x) && row[i] !== "") {
             row[i] = x;
         }
     }
 };
+
+var is_list_of_numbers = function(row) {
+    for (var i = 0; i < row.length; i++) {
+        if (typeof(row[i]) !== "number") return false;
+    }
+    return true;
+}
 
 var csvLineSplit = function(line, sep) {
     var row = line.replace("\r", "").split(sep);
@@ -112,7 +119,9 @@ FXParser.prototype = {
         var meas = [];
         for (var row = this.next(); row; row = this.next()) {
             if (!row[0]) break;
-            meas.push(row);
+            if (is_list_of_numbers(row)) {
+                meas.push(row);
+            }
         }
         return meas;
     },
