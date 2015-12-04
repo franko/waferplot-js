@@ -58,7 +58,8 @@ var tps_interpolation_normal_fn = function(w, control_points, normalize) {
 var tps_fit = function(data, param) {
     var N = data.rows();
 
-    var xindex = data.colIndexOf("x"), yindex = data.colIndexOf("y");
+    var xindex = param.plotting_columns.x, yindex = param.plotting_columns.y;
+    var zindex = param.plotting_columns.z;
     var cpdata = [];
     var norm = param.normalize;
     for (var i = 0; i < N; i++) {
@@ -96,7 +97,7 @@ var tps_fit = function(data, param) {
     }
 
     for (var i = 0; i < N; i++) {
-        Vd[i] = data.e(i+1, param.zindex);
+        Vd[i] = data.e(i+1, zindex);
     }
     Vd[N+0] = 0;
     Vd[N+1] = 0;
@@ -113,7 +114,7 @@ var tps_fit = function(data, param) {
     var result = [];
     for (var i = 1; i <= N; i++) {
         var x = data.e(i, xindex), y = data.e(i, yindex);
-        result[i-1] = [x, y, data.e(i, param.zindex), fn(x, y)];
+        result[i-1] = [x, y, data.e(i, zindex), fn(x, y)];
     }
     console.log(Matrix.create(result).inspect());
     return {eval: fn, eval_normal: normal_fn};

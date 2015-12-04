@@ -142,18 +142,16 @@ var create_points = function(dataset, norm_matrix, color, zselect) {
 	return points;
 };
 
-var zselect_dataset = function(dataset) {
-	var dsx = dataset.colIndexOf("x"), dsy = dataset.colIndexOf("y"), dsz = 1;
+var zselect_dataset = function(dataset, column) {
 	return function(i) {
-		var x = dataset.e(i, dsx), y = dataset.e(i, dsy), z = dataset.e(i, dsz);
+		var x = dataset.e(i, column.x), y = dataset.e(i, column.y), z = dataset.e(i, column.z);
 		return new THREE.Vector3(x, y, z);
 	};
 };
 
-var zselect_proj = function(dataset, zfun) {
-	var dsx = dataset.colIndexOf("x"), dsy = dataset.colIndexOf("y");
+var zselect_proj = function(dataset, column, zfun) {
 	return function(i) {
-		var x = dataset.e(i, dsx), y = dataset.e(i, dsy);
+		var x = dataset.e(i, column.x), y = dataset.e(i, column.y);
 		return new THREE.Vector3(x, y, zfun(x, y));
 	};
 };
@@ -198,10 +196,10 @@ var new_plot3d_scene = function(plot) {
 	var zmin = plot.zlevels[0], zmax = plot.zlevels[plot.zlevels.length - 1];
 
 	if (plot.dataset) {
-		var points = create_points(plot.dataset, plot.norm_matrix, 0x8888ff, zselect_dataset(plot.dataset));
+		var points = create_points(plot.dataset, plot.norm_matrix, 0x8888ff, zselect_dataset(plot.dataset, plot.plotting_columns));
 		scene.add(points);
 
-		var proj = create_points(plot.dataset, plot.norm_matrix, 0x000000, zselect_proj(plot.dataset, plot.zfun));
+		var proj = create_points(plot.dataset, plot.norm_matrix, 0x000000, zselect_proj(plot.dataset, plot.plotting_columns, plot.zfun));
 		scene.add(proj);
 	}
 
@@ -238,7 +236,7 @@ var point_camera = function(scene) {
 	camera.lookAt(scene.position);
 };
 
-var new_plot = function(zfun, normal_fun, dataset) {
+var new_plot = function(zfun, normal_fun, dataset, plotting_columns) {
 	var Nx = 80, Ny = 80, Dx = 5, Dy = 5;
 
 	var xyeval = function(i, j, action) {
@@ -282,14 +280,15 @@ var new_plot = function(zfun, normal_fun, dataset) {
 		normal_fun: normal_fun,
 		zlevels: zlevels,
 		dataset: dataset,
+		plotting_columns: plotting_columns,
 		norm_matrix: mat,
 	};
 
 	return plot;
 };
 
-MYAPP.load_wafer_function = function(zfun, normal_fun, dataset) {
-	var plot = new_plot(zfun, normal_fun, dataset);
+MYAPP.load_wafer_function = function(zfun, normal_fun, dataset, plotting_columns) {
+	var plot = new_plot(zfun, normal_fun, dataset, plotting_columns);
 	MYAPP.scene = new_plot3d_scene(plot);
 	MYAPP.sceneHUD = plot3d_legend_scene(plot, iwidth, iheight);
 	render();

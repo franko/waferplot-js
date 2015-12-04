@@ -5,10 +5,16 @@
     </head>
     <body>
         <script src="js/loader.js"></script>
+        <script src="js/sfx-parse.js"></script>
         <input type="file" id="file-select" />
+        <p>
+        Select Measurement
+        <div id="select_meas_div"></div>
+        Select Parameter
         <div>
         <select id="param_select" onChange="MYAPP.on_parameter()"></select>
         </div>
+        </p>
         <div id="three-js"></div>
 
         <script>
