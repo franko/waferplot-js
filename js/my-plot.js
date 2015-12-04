@@ -14,6 +14,23 @@ container.appendChild( renderer.domElement );
 
 var controls = new THREE.OrbitControls( camera, renderer.domElement );
 
+var point_texture = (function () {
+    var width = 64;
+    var canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = width;
+    var context = canvas.getContext('2d');
+    context.fillStyle = "#99f";
+    context.strokeStyle = "#000";
+    context.beginPath();
+    context.arc(width/2, width/2, width/2 * 0.9, 0, 2*Math.PI);
+    context.fill();
+    context.stroke();
+    var texture = new THREE.Texture(canvas);
+    texture.needsUpdate = true;
+    return texture;
+})();
+
 var color_level = [];
 color_level[6] = [0x1a9850, 0x91cf60, 0xd9ef8b, 0xfee08b, 0xfc8d59, 0xd73027];
 color_level[7] = [0x1a9850, 0x91cf60, 0xd9ef8b, 0xffffbf, 0xfee08b, 0xfc8d59, 0xd73027];
@@ -130,12 +147,13 @@ var add_pointlight = function(scene, color, pos) {
 	scene.add(pointLight);
 };
 
-var create_points = function(dataset, norm_matrix, color, zselect) {
+var create_points = function(dataset, norm_matrix, color, texture, zselect) {
 	var points_geo = new THREE.Geometry();
 	for (var i = 1; i <= dataset.rows(); i++) {
 		points_geo.vertices.push(zselect(i));
 	}
-	var points_mat = new THREE.PointsMaterial({color: color, size: 3, sizeAttenuation: false});
+	// , blending: THREE.AdditiveBlending, depthTest: false, transparent : true
+	var points_mat = new THREE.PointsMaterial({map: texture, size: 6, sizeAttenuation: false, transparent : true});
 	var points = new THREE.Points(points_geo, points_mat);
 	points.matrix.copy(norm_matrix);
 	points.matrixAutoUpdate = false;
@@ -196,11 +214,11 @@ var new_plot3d_scene = function(plot) {
 	var zmin = plot.zlevels[0], zmax = plot.zlevels[plot.zlevels.length - 1];
 
 	if (plot.dataset) {
-		var points = create_points(plot.dataset, plot.norm_matrix, 0x8888ff, zselect_dataset(plot.dataset, plot.plotting_columns));
+		var points = create_points(plot.dataset, plot.norm_matrix, 0x8888ff, point_texture, zselect_dataset(plot.dataset, plot.plotting_columns));
 		scene.add(points);
 
-		var proj = create_points(plot.dataset, plot.norm_matrix, 0x000000, zselect_proj(plot.dataset, plot.plotting_columns, plot.zfun));
-		scene.add(proj);
+		var proj = create_points(plot.dataset, plot.norm_matrix, 0x000000, point_texture, zselect_proj(plot.dataset, plot.plotting_columns, plot.zfun));
+		// scene.add(proj);
 	}
 
 	var carrier = gen_carrier_geometry(plot, zmin - (zmax - zmin) / 3);
