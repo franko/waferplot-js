@@ -1,5 +1,6 @@
 // var deltas = [1, 2, 2.5, 5, 10];
 var deltas = [1, 2, 2.5, 3, 5, 6, 8, 9, 10];
+var deltas_offset = [0, 0, 1, 0, 0, 0, 0, 0, -1];
 
 var find_units = function(xmin, xmax, ndiv) {
 	var xdelta = Math.abs(xmax - xmin);
@@ -15,7 +16,10 @@ var find_units = function(xmin, xmax, ndiv) {
 		var idiv = Math.ceil(xmax / div) - Math.floor(xmin / div);
 		if (idiv <= ndiv) break;
 	}
-	return deltas[i] * p;
+	var min_plog = plog - deltas_offset[i];
+	var max_plog = Math.floor(Math.log10(xmax)) + 1;
+	var digits = max_plog - (min_plog < 0 ? min_plog : 0);
+	return { div: deltas[i] * p, digits: digits };
 };
 
 MYAPP.scale_units = find_units;
