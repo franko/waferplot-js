@@ -1,7 +1,6 @@
 MYAPP = {};
 
 var current_choice;
-var current_fx;
 
 var lookup_fx_section = function(fx, choice) {
     for (var i = 0; i < fx.measSections.length; i++) {
@@ -101,6 +100,27 @@ var remove_div_childs = function(div) {
     }
 }
 
+var create_select = function(options_list, id) {
+    var select = document.createElement("select");
+    select.setAttribute("id", id);
+    for (var i = 0; i < options_list.length; i++) {
+        var entry = options_list[i];
+        var option = document.createElement("option");
+        option.setAttribute("value", entry);
+        option.text = entry;
+        select.add(option);
+    }
+    return select;
+}
+
+var select_terms = ["SLOT", "RECIPE", "MEAS SET", "SITE"];
+
+var append_td_with_child = function(tr, child) {
+    var td = document.createElement("td");
+    td.appendChild(child);
+    tr.appendChild(td);
+}
+
 var populate_meas_selects = function(fx) {
     var occur = {};
     for (var i = 0; i < fx.measSections.length; i++) {
@@ -115,41 +135,70 @@ var populate_meas_selects = function(fx) {
             }
         }
     }
+
+    current_choice = {};
+
     var select_div = document.getElementById("select_meas_div");
     remove_div_childs(select_div);
-    current_choice = {};
+
+    var table = document.createElement("table");
+    var thead = document.createElement("thead");
+    table.appendChild(thead);
+    var tbody = document.createElement("tbody");
+    table.appendChild(tbody);
+    select_div.appendChild(table);
+
+    var occur_keys = [];
     for (var key in occur) {
-        if (occur[key].length <= 1) continue;
-        var select = document.createElement("select");
-        select.setAttribute("id", "meas_select_" + key);
-        for (var i = 0; i < occur[key].length; i++) {
-            var entry = occur[key][i];
-            var option = document.createElement("option");
-            option.setAttribute("value", entry);
-            option.text = entry;
-            select.add(option);
-        }
-        var handler_gen = function(xkey, xselect) {
-            return function() {
-                current_choice[xkey] = xselect.options[xselect.selectedIndex].value;
-                load_data_section(fx, current_choice);
-            };
-        };
-        var on_change = handler_gen(key, select);
-        select.addEventListener("change", on_change);
-        current_choice[key] = select.options[select.selectedIndex].value;
-        select_div.appendChild(select);
+        if (select_terms.indexOf(key) < 0) continue;
+        occur_keys.push(key);
     }
+
+    var tr = document.createElement("tr");
+    for (var i = 0; i < occur_keys.length; i++) {
+        var th = document.createElement("th");
+        th.innerHTML = occur_keys[i];
+        tr.appendChild(th);
+    }
+    var th = document.createElement("th");
+    th.innerHTML = "Parameter";
+    tr.appendChild(th);
+    thead.appendChild(tr);
+
+    var handler_gen = function(xkey, xselect) {
+        return function() {
+            current_choice[xkey] = xselect.options[xselect.selectedIndex].value;
+            load_data_section(fx, current_choice);
+        };
+    };
+
+    tr = document.createElement("tr");
+    for (var k = 0; k < occur_keys.length; k++) {
+        var key = occur_keys[k];
+
+        var select = create_select(occur[key], "meas_select_" + key);
+        select.addEventListener("change", handler_gen(key, select));
+        current_choice[key] = select.options[select.selectedIndex].value;
+
+        append_td_with_child(tr, select);
+    }
+
+    var param_select = document.createElement("select");
+    param_select.setAttribute("id", "param_select");
+    param_select.addEventListener("change", function() { on_parameter_value(fx, current_choice); });
+    append_td_with_child(tr, param_select);
+
+    tbody.appendChild(tr);
     load_data_section(fx, current_choice);
 };
 
 var onLoadFile = function(evt) {
     if (evt.target.readyState == FileReader.DONE) {
-        current_fx = new FXParser(evt.target.result);
-        var time = current_fx.readDateTime();
+        var fx = new FXParser(evt.target.result);
+        var time = fx.readDateTime();
         var meas_info = {tool: "Tool A", time: time};
-        current_fx.readAll(meas_info);
-        populate_meas_selects(current_fx);
+        fx.readAll(meas_info);
+        populate_meas_selects(fx);
     }
 };
 
@@ -160,6 +209,3 @@ onFileSelection = function(evt) {
     reader.onloadend = onLoadFile;
     reader.readAsText(handler);
 };
-
-
-MYAPP.on_parameter = function() { on_parameter_value(current_fx, current_choice); };
