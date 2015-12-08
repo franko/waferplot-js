@@ -64,7 +64,7 @@ var rgba_string = function(n) {
 	return 'rgba(' + String(n) + ',' + String(g) + ',' + String(b) + ',256)';
 }
 
-var create_legend_texture = function(zlevels, legend_prec) {
+var create_legend_texture = function(zlevels, legend_format) {
     var width = 512, height = 512;
     var canvas = document.createElement('canvas');
     canvas.width = width;
@@ -75,7 +75,7 @@ var create_legend_texture = function(zlevels, legend_prec) {
 
 	var text_width = 0;
 	for (var i = 0; i < zlevels.length; i++) {
-		var metrics = context.measureText(zlevels[i].toPrecision(legend_prec));
+		var metrics = context.measureText(legend_format(zlevels[i]));
 		text_width = (metrics.width > text_width ? metrics.width : text_width);
 	}
     var text_height = 14;
@@ -91,7 +91,7 @@ var create_legend_texture = function(zlevels, legend_prec) {
 		var x0 = 4, x1 = x0 + text_width + 12, x2 = x1 + ww;
 
 		context.fillStyle = '#000';
-		context.fillText(zlevels[i].toPrecision(legend_prec), x0, y1 + text_yoffs);
+		context.fillText(legend_format(zlevels[i]), x0, y1 + text_yoffs);
 
 		context.beginPath();
 		context.moveTo(x1 - 4, y1);
@@ -158,7 +158,7 @@ var zselect_proj = function(dataset, column, zfun) {
 
 var plot3d_legend_scene = function(plot, width, height) {
 	var sceneOrtho = new THREE.Scene();
-	var legend = create_legend_texture(plot.zlevels, plot.legend_prec);
+	var legend = create_legend_texture(plot.zlevels, plot.legend_format);
 	var material = new THREE.SpriteMaterial({map: legend.texture});
 	var sprite = new THREE.Sprite(material);
 	sprite.scale.set(material.map.image.width, material.map.image.height, 1);
@@ -283,7 +283,7 @@ var new_plot = function(zfun, normal_fun, dataset, plotting_columns) {
 		dataset: dataset,
 		plotting_columns: plotting_columns,
 		norm_matrix: mat,
-		legend_prec: zunits.digits,
+		legend_format: zunits.format,
 	};
 
 	return plot;
