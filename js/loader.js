@@ -1,6 +1,7 @@
 MYAPP = {};
 
 var current_choice;
+var current_parameter;
 
 var lookup_fx_section = function(fx, choice) {
     for (var i = 0; i < fx.measSections.length; i++) {
@@ -28,6 +29,7 @@ on_parameter_value = function(fx, choice) {
             load_dataset(dataset, plotting_columns);
         }
     }
+    current_parameter = option.value;
 };
 
 var list_tonumber = function(row) {
@@ -69,7 +71,8 @@ var populate_param_select = function(data) {
     for (var i = select.length - 1; i >= 0; i--) {
         select.remove(i);
     }
-    for (var i = 0; i < data.headers.length; i++) {
+    var iselect = 0, k;
+    for (var i = 0, k = 0; i < data.headers.length; i++) {
         var head = data.headers[i];
         var hcase = head.toUpperCase();
         if (hcase === "X" || hcase === "Y" || hcase === "SITE") continue;
@@ -77,7 +80,12 @@ var populate_param_select = function(data) {
         option.setAttribute("value", head);
         option.text = head;
         select.add(option);
+        if (current_parameter && current_parameter === head) {
+            iselect = k;
+        }
+        k += 1;
     }
+    select.selectedIndex = iselect;
 };
 
 var normalize300 = function(x) { return x / 150; };
