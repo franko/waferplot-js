@@ -1,3 +1,7 @@
+/*
+** Parse CSV files.
+** Copyright (C) 2015 Francesco Abbate. See Copyright Notice in waferplot.js
+*/
 
 var list_tonumber = function(row) {
     for (var i = 0; i < row.length; i++) {

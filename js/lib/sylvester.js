@@ -1,3 +1,8 @@
+/*
+** Vector, matrix and geometry math JavaScript http://sylvester.jcoglan.com
+** Copyright (c) 2007-2015 James Coglan
+*/
+
 var Sylvester = {
   precision: 1e-6
 };

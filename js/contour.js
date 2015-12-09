@@ -1,3 +1,8 @@
+/*
+** Contour determination functions.
+** Copyright (C) 2015 Francesco Abbate. See Copyright Notice in waferplot.js
+*/
+
 var Grid = function(nx, ny, grid_gen, zfun) {
     this.vertices = [];
     for (var i = 0; i <= nx; i++) {

@@ -1,3 +1,8 @@
+/*
+** Find plotting scale units.
+** Copyright (C) 2015 Francesco Abbate. See Copyright Notice in waferplot.js
+*/
+
 // var deltas = [1, 2, 2.5, 5, 10];
 var deltas = [1, 2, 2.5, 3, 5, 6, 8, 9, 10];
 var deltas_offset = [0, 0, 1, 0, 0, 0, 0, 0, -1];

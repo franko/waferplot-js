@@ -1,3 +1,8 @@
+/*
+** Data loading and HTML generation.
+** Copyright (C) 2015 Francesco Abbate. See Copyright Notice in waferplot.js
+*/
+
 MYAPP = {};
 
 var current_choice;

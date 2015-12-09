@@ -1,3 +1,11 @@
+/*
+** Thin Plate Spline implementation.
+** Copyright (C) 2015 Francesco Abbate. See Copyright Notice in waferplot.js
+**
+** Based on the Jarno Elonen's article:
+** "Thin Plate Spline editor - an example program in C++""
+** from: http://elonen.iki.fi/code/tpsdemo/index.html.
+*/
 
 var tps_radial = function(r) {
     return (r <= 0 ? 0 : r*r*Math.log(r));
@@ -111,12 +119,14 @@ var tps_fit = function(data, param) {
     var normal_fn = tps_interpolation_normal_fn(w, control_points, norm);
 
     // Log the results of the fit. Only for debugging purpose.
-    var result = [];
-    for (var i = 1; i <= N; i++) {
-        var x = data.e(i, xindex), y = data.e(i, yindex);
-        result[i-1] = [x, y, data.e(i, zindex), fn(x, y)];
+    if (false) {
+        var result = [];
+        for (var i = 1; i <= N; i++) {
+            var x = data.e(i, xindex), y = data.e(i, yindex);
+            result[i-1] = [x, y, data.e(i, zindex), fn(x, y)];
+        }
+        console.log(Matrix.create(result).inspect());
     }
-    console.log(Matrix.create(result).inspect());
     return {eval: fn, eval_normal: normal_fn};
 };
 

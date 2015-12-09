@@ -1,12 +1,6 @@
-/* TODO list:
-   IMPORTANT THINGS:
-   - introduce coherent naming convetions for factors & co to clarify usage
-   - comments each functions
-   - put linear estimate functions in a specific namespace
-
-   MINOR:
-   - when factors specification are incompatibles (e.g. column 5 should be X and
-     column 5 should be Y (!= X)) return immediatly zero in sumOccurrencies.
+/*
+** DataFrames.
+** Copyright (C) 2015 Francesco Abbate. See Copyright Notice in waferplot.js
 */
 
 DataFrame = function() { };
