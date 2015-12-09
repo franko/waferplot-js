@@ -32,40 +32,6 @@ on_parameter_value = function(fx, choice) {
     current_parameter = option.value;
 };
 
-var list_tonumber = function(row) {
-    for (var i = 0; i < row.length; i++) {
-        var x = Number(row[i]);
-        if (!isNaN(x) && row[i] != "") {
-            row[i] = x;
-        }
-    }
-};
-
-var csvReader = function(text) {
-    var lines = text.split("\n");
-    var i = 0;
-    var next = function() {
-        if (i < lines.length) {
-            var row = lines[i++].replace("\r", "").split(",");
-            if (row.length > 0 && row[0] !== "") {
-                list_tonumber(row);
-                return row;
-            }
-        }
-    }
-    return {next: next};
-};
-
-var read_csv_file = function(text) {
-    var reader = csvReader(text);
-    var headers = reader.next();
-    var data = [];
-    for (var line = reader.next(); line; line = reader.next()) {
-        data.push(line);
-    }
-    return DataFrame.create(data, headers);
-};
-
 var populate_param_select = function(data) {
     var select = document.getElementById("param_select");
     for (var i = select.length - 1; i >= 0; i--) {

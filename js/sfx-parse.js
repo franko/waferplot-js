@@ -16,8 +16,10 @@ var is_list_of_numbers = function(row) {
 }
 
 var csvLineSplit = function(line, sep) {
+    var empty_re = /^\s*$/;
     var row = line.replace("\r", "").split(sep);
-    if (row.length > 0 && row[row.length - 1].match(/^\s*$/)) {
+    for (var k = row.length - 1; k >= 0; k--) {
+        if (!empty_re.test(row[k])) break;
         row.pop();
     }
     return row;
@@ -88,9 +90,9 @@ var complete_headers = function(headers) {
     headers.push("Y");
 };
 
-FXParser = function(text, options) {
+FXParser = function(text) {
     this.reader = csvReader(text);
-    this.measSections = (options && options.sections) ? options.sections : [];
+    this.measSections = [];
 };
 
 FXParser.tablesDoMatch = function(ta, tb) {
@@ -127,9 +129,8 @@ FXParser.prototype = {
     },
 
     appendSection: function(info, meas, headers) {
-        var resultHeaders = headers.slice(1, headers.length - 2);
         var table = DataFrame.create(meas, headers);
-        this.measSections.push({info: info, table: table, resultHeaders: resultHeaders});
+        this.measSections.push({info: info, table: table});
     },
 
     readSection: function(measInfo) {
@@ -141,7 +142,7 @@ FXParser.prototype = {
                 headers = row.filter(not_empty_string).map(clean_csv_string);
             } else if (collectTag(key)) {
                 info[key] = clean_csv_string(row[1]);
-            } else if (key == "Site #") {
+            } else if (key === "Site #") {
                 complete_headers(headers);
                 var meas = this.readMeasurements(headers);
                 this.appendSection(info, meas, headers);
