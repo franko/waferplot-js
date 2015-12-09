@@ -51,7 +51,10 @@ var csvReader = function(text) {
             return row;
         }
     }
-    return {next: next};
+    var current_line = function() {
+        return lines[i];
+    };
+    return {next: next, line: current_line};
 };
 
 var generalTags = ['RECIPE', 'MEAS SET', 'SITE', 'SLOT'];
@@ -100,6 +103,24 @@ FXParser.tablesDoMatch = function(ta, tb) {
 };
 
 FXParser.prototype = {
+    matchSfxFormat: function() {
+        var re = /^\s*Cassette:/;
+        return re.test(this.reader.line());
+    },
+
+    readTabularFormat: function() {
+        var headers = this.reader.next();
+        var data = [];
+        for (var row = this.next(); row; row = this.next()) {
+            if (row.length > 0) {
+                data.push(row);
+            }
+        }
+        var table = DataFrame.create(data, headers);
+        var info = {'SLOT': 'unknown', 'MEAS SET': 'default', 'SITE': '1'};
+        this.measSections.push({info: info, table: table});
+    },
+
     readDateTime: function() {
         for (var row = this.next(); row; row = this.next()) {
             if (!row[0]) break;

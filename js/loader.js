@@ -23,7 +23,10 @@ on_parameter_value = function(fx, choice) {
     var select = document.getElementById("param_select");
     var option = select.options[select.selectedIndex];
     var dataset = lookup_fx_section(fx, choice);
-    var plotting_columns = {x: dataset.colIndexOf("X"), y: dataset.colIndexOf("Y"), z: dataset.colIndexOf(option.value)};
+    var xindex = dataset.colIndexOf("X") > 0 ? dataset.colIndexOf("X") : dataset.colIndexOf("x");
+    var yindex = dataset.colIndexOf("Y") > 0 ? dataset.colIndexOf("Y") : dataset.colIndexOf("y");
+    if (xindex <= 0 || yindex <= 0) throw "Data is missing X, Y columns";
+    var plotting_columns = {x: xindex, y: yindex, z: dataset.colIndexOf(option.value)};
     if (dataset) {
         if (plotting_columns.z > 0) {
             load_dataset(dataset, plotting_columns);
@@ -169,9 +172,13 @@ var populate_meas_selects = function(fx) {
 var onLoadFile = function(evt) {
     if (evt.target.readyState == FileReader.DONE) {
         var fx = new FXParser(evt.target.result);
-        var time = fx.readDateTime();
-        var meas_info = {tool: "Tool A", time: time};
-        fx.readAll(meas_info);
+        if (fx.matchSfxFormat()) {
+            var time = fx.readDateTime();
+            var meas_info = {tool: "Tool A", time: time};
+            fx.readAll(meas_info);
+        } else {
+            fx.readTabularFormat();
+        }
         populate_meas_selects(fx);
     }
 };
