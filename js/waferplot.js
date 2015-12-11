@@ -20,6 +20,22 @@
 **
 */
 
+var container = document.getElementById("three-js");
+
+var renderer_element;
+var data_element;
+
+var enable_output = function(what) {
+	if (container.firstChild) {
+		container.removeChild(container.firstChild);
+	}
+	if (what === "Data") {
+		container.appendChild(data_element);
+	} else {
+		container.appendChild(renderer_element);
+	}
+}
+
 var nav = document.getElementsByClassName("show-nav");
 for (var i = 0; i < nav.length; i++) {
 	var elem = nav[i];
@@ -35,6 +51,7 @@ for (var i = 0; i < nav.length; i++) {
 			}
 		}
 		event.srcElement.classList.add("selected");
+		enable_output(event.srcElement.text);
 	});
 }
 
@@ -49,7 +66,10 @@ renderer.setSize(iwidth, iheight);
 renderer.setClearColor(0xffffff);
 renderer.autoClear = false; // To allow render overlay on top of sprited sphere
 
-var container = document.getElementById("three-js");
+renderer_element = renderer.domElement;
+data_element = document.createElement("p");
+data_element.innerHTML = "<h3>Hello World.</h3>";
+
 container.appendChild( renderer.domElement );
 
 var controls = new THREE.OrbitControls( camera, renderer.domElement );
