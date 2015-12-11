@@ -20,6 +20,24 @@
 **
 */
 
+var nav = document.getElementsByClassName("show-nav");
+for (var i = 0; i < nav.length; i++) {
+	var elem = nav[i];
+	elem.addEventListener('click', function(event) {
+		event.preventDefault();
+		var ul = document.getElementById("tab-ul");
+		var lis = ul.childNodes;
+		for (var k = 0; k < lis.length; k++) {
+			var li = lis[k];
+			var a = li.firstChild;
+			if (a && a.tagName === "A") {
+				a.className = "";
+			}
+		}
+		event.srcElement.classList.add("selected");
+	});
+}
+
 var iwidth = 800, iheight = 600;
 var camera = new THREE.PerspectiveCamera( 75, iwidth/iheight, 0.1, 1000 );
 

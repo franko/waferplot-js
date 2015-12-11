@@ -1,0 +1,36 @@
+/* copied shamelessy from: https://guides.github.com/features/mastering-markdown/ */
+
+html, body {
+  margin: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  color: #444;
+  background-color: #fff;
+}
+
+a {
+  color: #4183c4;
+  text-decoration: none;
+}
+
+ul.show-nav {
+  padding: 0;
+  margin: 20px 0;
+}
+.show-nav li {
+  display: inline-block;
+  padding: 0;
+  margin: 0 15px 0 0;
+  list-style-type: none;
+}
+
+.show-nav li a {
+  font-size: 16px;
+  font-weight: bold;
+}
+.show-nav li a.selected {
+  padding: 2px 12px 4px 12px;
+  color: #fff;
+  background: #4183C4;
+  border-radius: 20px;
+}
