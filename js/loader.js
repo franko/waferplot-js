@@ -188,10 +188,12 @@ var onLoadFile = function(evt) {
     }
 };
 
-onFileSelection = function(evt) {
+var on_file_selection = function(evt) {
     var files = evt.target.files;
     var handler = files[0];
     var reader = new FileReader();
     reader.onloadend = onLoadFile;
     reader.readAsText(handler);
 };
+
+document.getElementById('file-select').addEventListener('change', on_file_selection, false);
