@@ -36,23 +36,53 @@ var enable_output = function(what) {
 	}
 }
 
-var nav = document.getElementsByClassName("show-nav");
-for (var i = 0; i < nav.length; i++) {
-	var elem = nav[i];
-	elem.addEventListener('click', function(event) {
-		event.preventDefault();
-		var ul = document.getElementById("tab-ul");
-		var lis = ul.childNodes;
-		for (var k = 0; k < lis.length; k++) {
-			var li = lis[k];
-			var a = li.firstChild;
-			if (a && a.tagName === "A") {
-				a.className = "";
-			}
+var foreach_nav_a = function(action) {
+	var ul = document.getElementById("tab-ul");
+	var lis = ul.childNodes;
+	for (var k = 0; k < lis.length; k++) {
+		var li = lis[k];
+		var a = li.firstChild;
+		if (a && a.tagName === "A") {
+			action(a);
 		}
+	}
+}
+
+foreach_nav_a(function(a) {
+	a.addEventListener('click', function(event) {
+		event.preventDefault();
+		foreach_nav_a(function(a) { a.className = ""; });
 		event.srcElement.classList.add("selected");
 		enable_output(event.srcElement.text);
 	});
+});
+
+var populate_data_grid = function(dataset, table_container) {
+	if (table_container.firstChild) {
+		table_container.removeChild(table_container.firstChild);
+	}
+	var table = document.createElement("table");
+	var thead = document.createElement("thead");
+	var tr = document.createElement("tr");
+	for (var j = 0; j < dataset.headers.length; j++) {
+		var th = document.createElement("th");
+		th.innerHTML = dataset.headers[j];
+		tr.appendChild(th);
+	}
+	thead.appendChild(tr);
+	var tbody = document.createElement("tbody");
+	for (var i = 1; i <= dataset.rows(); i++) {
+		tr = document.createElement("tr");
+		for (var j = 1; j <= dataset.headers.length; j++) {
+			var td = document.createElement("td");
+			td.innerHTML = String(dataset.e(i, j));
+			tr.appendChild(td);
+		}
+		tbody.appendChild(tr);
+	}
+	table.appendChild(thead);
+	table.appendChild(tbody);
+	table_container.appendChild(table);
 }
 
 var iwidth = 800, iheight = 600;
@@ -350,6 +380,7 @@ var new_plot = function(zfun, normal_fun, dataset, plotting_columns) {
 };
 
 MYAPP.load_wafer_function = function(zfun, normal_fun, dataset, plotting_columns) {
+	populate_data_grid(dataset, data_element);
 	var plot = new_plot(zfun, normal_fun, dataset, plotting_columns);
 	MYAPP.scene = new_plot3d_scene(plot);
 	MYAPP.sceneHUD = plot3d_legend_scene(plot, iwidth, iheight);

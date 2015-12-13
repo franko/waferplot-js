@@ -13,6 +13,11 @@ a {
   text-decoration: none;
 }
 
+table {
+    font-family: monospace;
+    font-size: 12px;
+}
+
 ul.show-nav {
   padding: 0;
   margin: 20px 0;
@@ -25,11 +30,12 @@ ul.show-nav {
 }
 
 .show-nav li a {
+  padding: 4px 12px 4px 10px;
   font-size: 16px;
   font-weight: bold;
 }
 .show-nav li a.selected {
-  padding: 2px 12px 4px 12px;
+  padding: 4px 12px 4px 10px;
   color: #fff;
   background: #4183C4;
   border-radius: 20px;
