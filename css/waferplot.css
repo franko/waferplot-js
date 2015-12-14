@@ -40,3 +40,17 @@ ul.show-nav {
   background: #4183C4;
   border-radius: 20px;
 }
+
+div#app-area {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 70%;
+}
+
+div.help {
+  position: absolute;
+  top: 20px;
+  right: 0;
+  width: 28%;
+}

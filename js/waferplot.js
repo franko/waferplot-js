@@ -85,7 +85,8 @@ var populate_data_grid = function(dataset, table_container) {
 	table_container.appendChild(table);
 }
 
-var iwidth = 800, iheight = 600;
+var div_app = document.getElementById("app-area");
+var iwidth = Math.ceil(window.innerWidth * 0.7), iheight = Math.ceil(iwidth * 0.75);
 var camera = new THREE.PerspectiveCamera( 75, iwidth/iheight, 0.1, 1000 );
 
 var cameraOrtho = new THREE.OrthographicCamera( - iwidth / 2, iwidth / 2, iheight / 2, - iheight / 2, -10, 10 );
