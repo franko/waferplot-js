@@ -24,7 +24,7 @@ var container = document.getElementById("three-js");
 
 var renderer_element;
 var data_element;
-var current_plot, current_area;
+var current_plot;
 
 var enable_output = function(what) {
 	if (container.firstChild) {
@@ -101,12 +101,12 @@ var setup_cameras = function(width, height) {
 	cameraOrtho.position.z = 10;
 }
 
-current_area = compute_area_size();
-camera = new THREE.PerspectiveCamera( 75, current_area.width/current_area.height, 0.1, 1000 );
+var viewport = compute_area_size();
+camera = new THREE.PerspectiveCamera( 75, viewport.width/viewport.height, 0.1, 1000 );
 setup_cameras();
 
 var renderer = new THREE.WebGLRenderer({antialias: true, sortObjects: false});
-renderer.setSize(current_area.width, current_area.height);
+renderer.setSize(viewport.width, viewport.height);
 renderer.setClearColor(0xffffff);
 renderer.autoClear = false; // To allow render overlay on top of sprited sphere
 
@@ -397,11 +397,12 @@ MYAPP.load_wafer_function = function(zfun, normal_fun, dataset, plotting_columns
 	populate_data_grid(dataset, data_element);
 	current_plot = new_plot(zfun, normal_fun, dataset, plotting_columns);
 	MYAPP.scene = new_plot3d_scene(current_plot);
-	MYAPP.sceneHUD = plot3d_legend_scene(current_plot, current_area.width, current_area.height);
+	var viewport = renderer.getSize();
+	MYAPP.sceneHUD = plot3d_legend_scene(current_plot, viewport.width, viewport.height);
 	render();
 };
 
-setup_cameras(current_area.width, current_area.height);
+setup_cameras(viewport.width, viewport.height);
 
 var zfun0 = function(x, y) { return 0; };
 var normal_fun0 = function(x, y) {return new THREE.Vector3(0, 0, 1); };
@@ -422,11 +423,11 @@ var render = function() {
 controls.addEventListener('change', render);
 
 var onWindowResize = function() {
-	current_area = compute_area_size();
-	setup_cameras(current_area.width, current_area.height);
-	renderer.setSize(current_area.width, current_area.height);
+	var viewport = compute_area_size();
+	setup_cameras(viewport.width, viewport.height);
+	renderer.setSize(viewport.width, viewport.height);
 	if (current_plot) {
-		MYAPP.sceneHUD = plot3d_legend_scene(current_plot, current_area.width, current_area.height);
+		MYAPP.sceneHUD = plot3d_legend_scene(current_plot, viewport.width, viewport.height);
 		render();
 	}
 }
