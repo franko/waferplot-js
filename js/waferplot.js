@@ -24,6 +24,7 @@ var container = document.getElementById("three-js");
 
 var renderer_element;
 var data_element;
+var current_plot, current_area;
 
 var enable_output = function(what) {
 	if (container.firstChild) {
@@ -85,15 +86,27 @@ var populate_data_grid = function(dataset, table_container) {
 	table_container.appendChild(table);
 }
 
-var div_app = document.getElementById("app-area");
-var iwidth = Math.ceil(window.innerWidth * 0.7), iheight = Math.ceil(iwidth * 0.75);
-var camera = new THREE.PerspectiveCamera( 75, iwidth/iheight, 0.1, 1000 );
+var camera, cameraOrtho;
 
-var cameraOrtho = new THREE.OrthographicCamera( - iwidth / 2, iwidth / 2, iheight / 2, - iheight / 2, -10, 10 );
-cameraOrtho.position.z = 10;
+var compute_area_size = function() {
+	var width = Math.ceil(window.innerWidth * 0.7);
+	return { width: width, height: Math.ceil(width * 0.75) };
+}
+
+var setup_cameras = function(width, height) {
+	camera.aspect = width / height;
+	camera.updateProjectionMatrix();
+
+	cameraOrtho = new THREE.OrthographicCamera( - width / 2, width / 2, height / 2, - height / 2, -10, 10 );
+	cameraOrtho.position.z = 10;
+}
+
+current_area = compute_area_size();
+camera = new THREE.PerspectiveCamera( 75, current_area.width/current_area.height, 0.1, 1000 );
+setup_cameras();
 
 var renderer = new THREE.WebGLRenderer({antialias: true, sortObjects: false});
-renderer.setSize(iwidth, iheight);
+renderer.setSize(current_area.width, current_area.height);
 renderer.setClearColor(0xffffff);
 renderer.autoClear = false; // To allow render overlay on top of sprited sphere
 
@@ -382,11 +395,13 @@ var new_plot = function(zfun, normal_fun, dataset, plotting_columns) {
 
 MYAPP.load_wafer_function = function(zfun, normal_fun, dataset, plotting_columns) {
 	populate_data_grid(dataset, data_element);
-	var plot = new_plot(zfun, normal_fun, dataset, plotting_columns);
-	MYAPP.scene = new_plot3d_scene(plot);
-	MYAPP.sceneHUD = plot3d_legend_scene(plot, iwidth, iheight);
+	current_plot = new_plot(zfun, normal_fun, dataset, plotting_columns);
+	MYAPP.scene = new_plot3d_scene(current_plot);
+	MYAPP.sceneHUD = plot3d_legend_scene(current_plot, current_area.width, current_area.height);
 	render();
 };
+
+setup_cameras(current_area.width, current_area.height);
 
 var zfun0 = function(x, y) { return 0; };
 var normal_fun0 = function(x, y) {return new THREE.Vector3(0, 0, 1); };
@@ -405,6 +420,18 @@ var render = function() {
 };
 
 controls.addEventListener('change', render);
+
+var onWindowResize = function() {
+	current_area = compute_area_size();
+	setup_cameras(current_area.width, current_area.height);
+	renderer.setSize(current_area.width, current_area.height);
+	if (current_plot) {
+		MYAPP.sceneHUD = plot3d_legend_scene(current_plot, current_area.width, current_area.height);
+		render();
+	}
+}
+
+window.addEventListener('resize', onWindowResize)
 
 var animate = function() {
 	requestAnimationFrame(animate);
