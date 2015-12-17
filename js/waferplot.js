@@ -20,18 +20,101 @@
 **
 */
 
-var iwidth = 800, iheight = 600;
-var camera = new THREE.PerspectiveCamera( 75, iwidth/iheight, 0.1, 1000 );
+var container = document.getElementById("three-js");
 
-var cameraOrtho = new THREE.OrthographicCamera( - iwidth / 2, iwidth / 2, iheight / 2, - iheight / 2, -10, 10 );
-cameraOrtho.position.z = 10;
+var renderer_element;
+var data_element;
+var current_plot;
+
+var enable_output = function(what) {
+	if (container.firstChild) {
+		container.removeChild(container.firstChild);
+	}
+	if (what === "Data") {
+		container.appendChild(data_element);
+	} else {
+		container.appendChild(renderer_element);
+	}
+}
+
+var foreach_nav_a = function(action) {
+	var ul = document.getElementById("tab-ul");
+	var lis = ul.childNodes;
+	for (var k = 0; k < lis.length; k++) {
+		var li = lis[k];
+		var a = li.firstChild;
+		if (a && a.tagName === "A") {
+			action(a);
+		}
+	}
+}
+
+foreach_nav_a(function(a) {
+	a.addEventListener('click', function(event) {
+		event.preventDefault();
+		foreach_nav_a(function(a) { a.className = ""; });
+		event.srcElement.classList.add("selected");
+		enable_output(event.srcElement.text);
+	});
+});
+
+var populate_data_grid = function(dataset, table_container) {
+	if (table_container.firstChild) {
+		table_container.removeChild(table_container.firstChild);
+	}
+	var table = document.createElement("table");
+	table.classList.add("data");
+	var thead = document.createElement("thead");
+	var tr = document.createElement("tr");
+	for (var j = 0; j < dataset.headers.length; j++) {
+		var th = document.createElement("th");
+		th.innerHTML = dataset.headers[j];
+		tr.appendChild(th);
+	}
+	thead.appendChild(tr);
+	var tbody = document.createElement("tbody");
+	for (var i = 1; i <= dataset.rows(); i++) {
+		tr = document.createElement("tr");
+		for (var j = 1; j <= dataset.headers.length; j++) {
+			var td = document.createElement("td");
+			td.innerHTML = String(dataset.e(i, j));
+			tr.appendChild(td);
+		}
+		tbody.appendChild(tr);
+	}
+	table.appendChild(thead);
+	table.appendChild(tbody);
+	table_container.appendChild(table);
+}
+
+var camera, cameraOrtho;
+
+var compute_area_size = function() {
+	var width = Math.ceil(window.innerWidth * 0.7);
+	return { width: width, height: Math.ceil(width * 0.65) };
+}
+
+var setup_cameras = function(width, height) {
+	camera.aspect = width / height;
+	camera.updateProjectionMatrix();
+
+	cameraOrtho = new THREE.OrthographicCamera( - width / 2, width / 2, height / 2, - height / 2, -10, 10 );
+	cameraOrtho.position.z = 10;
+}
+
+var viewport = compute_area_size();
+camera = new THREE.PerspectiveCamera( 75, viewport.width/viewport.height, 0.1, 1000 );
+setup_cameras();
 
 var renderer = new THREE.WebGLRenderer({antialias: true, sortObjects: false});
-renderer.setSize(iwidth, iheight);
+renderer.setSize(viewport.width, viewport.height);
 renderer.setClearColor(0xffffff);
 renderer.autoClear = false; // To allow render overlay on top of sprited sphere
 
-var container = document.getElementById("three-js");
+renderer_element = renderer.domElement;
+data_element = document.createElement("p");
+data_element.innerHTML = "<h3>No data currently loaded.</h3>";
+
 container.appendChild( renderer.domElement );
 
 var controls = new THREE.OrbitControls( camera, renderer.domElement );
@@ -250,7 +333,7 @@ var new_plot3d_scene = function(plot) {
 	return scene;
 };
 
-var CAMERA_DIST = 2.0, CAMERA_ANGLE = 30 * Math.PI / 180;
+var CAMERA_DIST = 1.85, CAMERA_ANGLE = 30 * Math.PI / 180;
 var point_camera = function(scene) {
 	camera.position.x = 0;
 	camera.position.y = - CAMERA_DIST * Math.cos(CAMERA_ANGLE);
@@ -312,11 +395,15 @@ var new_plot = function(zfun, normal_fun, dataset, plotting_columns) {
 };
 
 MYAPP.load_wafer_function = function(zfun, normal_fun, dataset, plotting_columns) {
-	var plot = new_plot(zfun, normal_fun, dataset, plotting_columns);
-	MYAPP.scene = new_plot3d_scene(plot);
-	MYAPP.sceneHUD = plot3d_legend_scene(plot, iwidth, iheight);
+	populate_data_grid(dataset, data_element);
+	current_plot = new_plot(zfun, normal_fun, dataset, plotting_columns);
+	MYAPP.scene = new_plot3d_scene(current_plot);
+	var viewport = renderer.getSize();
+	MYAPP.sceneHUD = plot3d_legend_scene(current_plot, viewport.width, viewport.height);
 	render();
 };
+
+setup_cameras(viewport.width, viewport.height);
 
 var zfun0 = function(x, y) { return 0; };
 var normal_fun0 = function(x, y) {return new THREE.Vector3(0, 0, 1); };
@@ -335,6 +422,18 @@ var render = function() {
 };
 
 controls.addEventListener('change', render);
+
+var onWindowResize = function() {
+	var viewport = compute_area_size();
+	setup_cameras(viewport.width, viewport.height);
+	renderer.setSize(viewport.width, viewport.height);
+	if (current_plot) {
+		MYAPP.sceneHUD = plot3d_legend_scene(current_plot, viewport.width, viewport.height);
+		render();
+	}
+}
+
+window.addEventListener('resize', onWindowResize)
 
 var animate = function() {
 	requestAnimationFrame(animate);
