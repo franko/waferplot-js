@@ -13,14 +13,24 @@ a {
   text-decoration: none;
 }
 
+canvas {
+  border: 1px solid #ddd;
+}
+
 table {
-    font-family: monospace;
-    font-size: 12px;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+table.data td {
+  padding-left: 8px;
+  padding-right: 8px;
+  text-align: right;
 }
 
 ul.show-nav {
   padding: 0;
-  margin: 20px 0;
+  margin: 20px 10px;
 }
 .show-nav li {
   display: inline-block;
@@ -43,6 +53,7 @@ ul.show-nav {
 
 div#app-area {
   position: absolute;
+  margin: 0;
   top: 20px;
   left: 0;
   width: 70%;
@@ -50,7 +61,9 @@ div#app-area {
 
 div.help {
   position: absolute;
+  text-rendering: optimizeLegibility;
+  font-size: 16px;
   top: 20px;
-  right: 0;
-  width: 28%;
+  right: 5px;
+  width: 27%;
 }

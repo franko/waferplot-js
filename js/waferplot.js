@@ -63,6 +63,7 @@ var populate_data_grid = function(dataset, table_container) {
 		table_container.removeChild(table_container.firstChild);
 	}
 	var table = document.createElement("table");
+	table.classList.add("data");
 	var thead = document.createElement("thead");
 	var tr = document.createElement("tr");
 	for (var j = 0; j < dataset.headers.length; j++) {
@@ -90,7 +91,7 @@ var camera, cameraOrtho;
 
 var compute_area_size = function() {
 	var width = Math.ceil(window.innerWidth * 0.7);
-	return { width: width, height: Math.ceil(width * 0.75) };
+	return { width: width, height: Math.ceil(width * 0.65) };
 }
 
 var setup_cameras = function(width, height) {
@@ -112,7 +113,7 @@ renderer.autoClear = false; // To allow render overlay on top of sprited sphere
 
 renderer_element = renderer.domElement;
 data_element = document.createElement("p");
-data_element.innerHTML = "<h3>Hello World.</h3>";
+data_element.innerHTML = "<h3>No data currently loaded.</h3>";
 
 container.appendChild( renderer.domElement );
 
@@ -332,7 +333,7 @@ var new_plot3d_scene = function(plot) {
 	return scene;
 };
 
-var CAMERA_DIST = 2.0, CAMERA_ANGLE = 30 * Math.PI / 180;
+var CAMERA_DIST = 1.85, CAMERA_ANGLE = 30 * Math.PI / 180;
 var point_camera = function(scene) {
 	camera.position.x = 0;
 	camera.position.y = - CAMERA_DIST * Math.cos(CAMERA_ANGLE);
