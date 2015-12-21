@@ -207,7 +207,7 @@ var create_legend_texture = function(zlevels, legend_format) {
 };
 
 var add_geometry_to_scene = function(plot, scene, geometry, color) {
-	var material = new THREE.MeshLambertMaterial( { color: color, polygonOffset: true, polygonOffsetFactor: 0.8 } )
+	var material = new THREE.MeshPhongMaterial( { color: color, polygonOffset: true, polygonOffsetFactor: 0.8 } )
 	var mesh = new THREE.Mesh( geometry, material );
 	mesh.matrix.copy(plot.norm_matrix);
 	mesh.matrixAutoUpdate = false;
