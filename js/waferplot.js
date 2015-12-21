@@ -52,8 +52,8 @@ foreach_nav_a(function(a) {
 	a.addEventListener('click', function(event) {
 		event.preventDefault();
 		foreach_nav_a(function(a) { a.className = ""; });
-		event.srcElement.classList.add("selected");
-		enable_output(event.srcElement.text);
+		event.target.classList.add("selected");
+		enable_output(event.target.text);
 	});
 });
 
