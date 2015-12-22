@@ -1,10 +1,15 @@
 <!doctype html>
 <html>
     <head>
-        <title>My first Three.js app</title>
+        <title>Waferplot-JS</title>
+        <meta name="Author" content="Francesco Abbate">
+        <meta name="Copyright" content="Copyright (C) 2015, Francesco Abbate">
+        <meta name="Language" content="en">
+        <meta name="description" content="An HTML application to display 3D plots and contour plots for wafer data">
     </head>
     <link rel="stylesheet" href="css/waferplot.css">
     <body>
+        <div id="app-area">
         <input type="file" id="file-select" />
         <div id="select_meas_div"></div>
         <ul id="tab-ul" class="show-nav">
@@ -20,5 +25,25 @@
         <script src="js/waferplot.js"></script>
         <script src="js/dataframe.js"></script>
         <script src="js/tps.js"></script>
+        </div>
+        <div class="help">
+            <h2>How to use the application</h2>
+            <p>The application works by loading the data in CSV format.
+            The data should contains informations about the X and Y coordinates of each measurement.</p>
+
+            <p>The data can contains one or more measured parameters as long as each parameter is identified by a different name.
+            Once the data is loaded the application will let the user choose the parameter to be plotted.</p>
+
+            <p>The CSV file with the data should be in a simple format with the headers in the first line and the measurements in the following lines like in the example below:</br>
+
+            <table class="data"><tr><td>thickness</td><td>RI</td><td>X</td><td>Y</td></tr>
+                <tr><td>201.5</td><td>1.457</td><td>0</td><td>0</td></tr>
+                <tr><td>202.3</td><td>1.459</td><td>11.5</td><td>24.5</td></tr>
+                <tr><td>201.1</td><td>1.458</td><td>102.5</td><td>-24.5</td></tr>
+            </table>
+            </p>
+
+            <p>In addition the application will accept data coming from KLA-Tencor semiconductor ellipsometers and reflectometers.</p>
+        </div>
     </body>
 </html>
