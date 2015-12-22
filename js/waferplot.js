@@ -235,13 +235,33 @@ var add_pointlight = function(scene, color, pos) {
 	scene.add(pointLight);
 };
 
-var create_points = function(dataset, norm_matrix, color, zselect) {
-	var points_geo = new THREE.Geometry();
+var N_CIRCLE_BREAKS = 20;
+var CIRCLE_NORM_RADIUS = 1.6;
+
+var circle_point = function(x0, y0, phi, zfun) {
+	var x = x0 + CIRCLE_NORM_RADIUS * Math.cos(phi);
+	var y = y0 + CIRCLE_NORM_RADIUS * Math.sin(phi);
+	return new THREE.Vector3(x, y, zfun(x, y));
+}
+
+var create_points = function(dataset, norm_matrix, color, zfun, zselect) {
+	var geo = new THREE.Geometry();
 	for (var i = 1; i <= dataset.rows(); i++) {
-		points_geo.vertices.push(zselect(i));
+		var pi = zselect(i);
+		var x0 = pi.x, y0 = pi.y;
+		var p0 = new THREE.Vector3(x0, y0, zfun(x0, y0));
+		var p1 = circle_point(x0, y0, 0, zfun);
+		var index_c = geo.vertices.length;
+		var index = index_c + 1;
+		geo.vertices.push(p0, p1);
+		for (var k = 0; k < N_CIRCLE_BREAKS; k++) {
+			var phi = 2*Math.PI * (k + 1) / N_CIRCLE_BREAKS;
+			geo.vertices.push(circle_point(x0, y0, phi, zfun));
+			geo.faces.push(new THREE.Face3(index + k, index + ((k + 1) % N_CIRCLE_BREAKS), index_c));
+		}
 	}
-	var points_mat = new THREE.PointsMaterial({color: color, size: 3, sizeAttenuation: false});
-	var points = new THREE.Points(points_geo, points_mat);
+	var material = new THREE.MeshBasicMaterial({ color: color, polygonOffset: true, polygonOffsetFactor: -0.8 })
+	var points = new THREE.Mesh(geo, material);
 	points.matrix.copy(norm_matrix);
 	points.matrixAutoUpdate = false;
 	return points;
@@ -301,11 +321,8 @@ var new_plot3d_scene = function(plot) {
 	var zmin = plot.zlevels[0], zmax = plot.zlevels[plot.zlevels.length - 1];
 
 	if (plot.dataset) {
-		var points = create_points(plot.dataset, plot.norm_matrix, 0x8888ff, zselect_dataset(plot.dataset, plot.plotting_columns));
+		var points = create_points(plot.dataset, plot.norm_matrix, 0x333333, plot.zfun, zselect_dataset(plot.dataset, plot.plotting_columns));
 		scene.add(points);
-
-		var proj = create_points(plot.dataset, plot.norm_matrix, 0x000000, zselect_proj(plot.dataset, plot.plotting_columns, plot.zfun));
-		scene.add(proj);
 	}
 
 	var carrier = gen_carrier_geometry(plot, zmin - (zmax - zmin) / 3);
