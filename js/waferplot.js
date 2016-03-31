@@ -20,6 +20,8 @@
 **
 */
 
+MYAPP.FLATTEN = true;
+
 var container = document.getElementById("three-js");
 
 var renderer_element;
@@ -128,9 +130,9 @@ color_level[10] = [0x006837, 0x1a9850, 0x66bd63, 0xa6d96a, 0xd9ef8b, 0xfee08b, 0
 color_level[11] = [0x006837, 0x1a9850, 0x66bd63, 0xa6d96a, 0xd9ef8b, 0xffffbf, 0xfee08b, 0xfdae61, 0xf46d43, 0xd73027, 0xa50026];
 var get_colormap = function(n) { return color_level[n < 6 ? 6 : (n < 11 ? n: 11)]; }
 
-var gen_carrier_geometry = function(plot, height) {
+var gen_carrier_geometry = function(plot, height, ztransform) {
 	var Nx = plot.Nx, Ny = plot.Ny;
-	var xygen = plot.xygen, zfun = plot.zfun;
+	var xygen = plot.xygen, zfun = ztransform ? function(x, y) { return ztransform(plot.zfun(x, y)); } : plot.zfun;
 	var bo_z = function() { return height; };
 	var carrier = new THREE.Geometry();
 	var i = 0, j = 0;
@@ -247,17 +249,18 @@ var create_points = function(dataset, norm_matrix, color, zselect) {
 	return points;
 };
 
-var zselect_dataset = function(dataset, column) {
+var zselect_dataset = function(dataset, column, ztransform) {
 	return function(i) {
 		var x = dataset.e(i, column.x), y = dataset.e(i, column.y), z = dataset.e(i, column.z);
-		return new THREE.Vector3(x, y, z);
+		return new THREE.Vector3(x, y, ztransform ? ztransform(z) : z);
 	};
 };
 
-var zselect_proj = function(dataset, column, zfun) {
+var zselect_proj = function(dataset, column, zfun, ztransform) {
 	return function(i) {
 		var x = dataset.e(i, column.x), y = dataset.e(i, column.y);
-		return new THREE.Vector3(x, y, zfun(x, y));
+		var z = zfun(x, y);
+		return new THREE.Vector3(x, y, ztransform ? ztransform(z) : z);
 	};
 };
 
@@ -299,16 +302,17 @@ var new_plot3d_scene = function(plot) {
 	var scene = new THREE.Scene();
 
 	var zmin = plot.zlevels[0], zmax = plot.zlevels[plot.zlevels.length - 1];
+	var my_ztransform = MYAPP.FLATTEN && function(z) { return zmin; };
 
 	if (plot.dataset) {
-		var points = create_points(plot.dataset, plot.norm_matrix, 0x8888ff, zselect_dataset(plot.dataset, plot.plotting_columns));
+		var points = create_points(plot.dataset, plot.norm_matrix, 0x8888ff, zselect_dataset(plot.dataset, plot.plotting_columns, my_ztransform));
 		scene.add(points);
 
-		var proj = create_points(plot.dataset, plot.norm_matrix, 0x000000, zselect_proj(plot.dataset, plot.plotting_columns, plot.zfun));
+		var proj = create_points(plot.dataset, plot.norm_matrix, 0x000000, zselect_proj(plot.dataset, plot.plotting_columns, plot.zfun, my_ztransform));
 		scene.add(proj);
 	}
 
-	var carrier = gen_carrier_geometry(plot, zmin - (zmax - zmin) / 3);
+	var carrier = gen_carrier_geometry(plot, zmin - (zmax - zmin) / 3, my_ztransform);
 	carrier.computeFaceNormals();
 	carrier.computeVertexNormals();
 	add_geometry_to_scene(plot, scene, carrier, 0xbbbbbb);
@@ -320,10 +324,13 @@ var new_plot3d_scene = function(plot) {
 		grid.cut_zlevel(zlevels[i], zlevels);
 	}
 
+	var z_unit_vector = new THREE.Vector3(0, 0, 1);
+	var surf_normal_fun = MYAPP.FLATTEN ? function(x, y) { return z_unit_vector; } : plot.normal_fun;
+
 	var colormap = get_colormap(zlevels.length - 1);
 	for (var i = 0; i < zlevels.length - 1; i++) {
-		var geometry = grid.select_zlevel(zlevels[i], zlevels[i+1], zlevels);
-		plot3d_compute_normals(geometry, plot.normal_fun);
+		var geometry = grid.select_zlevel(zlevels[i], zlevels[i+1], zlevels, my_ztransform);
+		plot3d_compute_normals(geometry, surf_normal_fun);
 		add_geometry_to_scene(plot, scene, geometry, colormap[i]);
 	}
 
@@ -335,9 +342,15 @@ var new_plot3d_scene = function(plot) {
 
 var CAMERA_DIST = 1.85, CAMERA_ANGLE = 30 * Math.PI / 180;
 var point_camera = function(scene) {
-	camera.position.x = 0;
-	camera.position.y = - CAMERA_DIST * Math.cos(CAMERA_ANGLE);
-	camera.position.z = + CAMERA_DIST * Math.sin(CAMERA_ANGLE);
+	if (MYAPP.FLATTEN) {
+		camera.position.x = 0;
+		camera.position.y = 0;
+		camera.position.z = CAMERA_DIST;
+	} else {
+		camera.position.x = 0;
+		camera.position.y = - CAMERA_DIST * Math.cos(CAMERA_ANGLE);
+		camera.position.z = + CAMERA_DIST * Math.sin(CAMERA_ANGLE);
+	}
 	camera.lookAt(scene.position);
 };
 

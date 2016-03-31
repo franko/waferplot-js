@@ -172,7 +172,7 @@ Grid.prototype.cut_zlevel = function(zvalue, zlevels) {
     }
 };
 
-Grid.prototype.select_zlevel = function(zvalue1, zvalue2, zlevels) {
+Grid.prototype.select_zlevel = function(zvalue1, zvalue2, zlevels, ztransform) {
     var threegeo = new THREE.Geometry();
     var vertmap = {};
     for (var i = 0; i < this.faces.length; i++) {
@@ -188,6 +188,9 @@ Grid.prototype.select_zlevel = function(zvalue1, zvalue2, zlevels) {
                 var ivert = face.ivertices[k];
                 if (vertmap[ivert] === undefined) {
                     var vert = this.vertices[ivert];
+                    if (ztransform) {
+                        vert = new THREE.Vector3(vert.x, vert.y, ztransform(vert.z));
+                    }
                     // Normally here a "clone" of vert should be taken but we
                     // assume that the three.js geometry can share the vertices
                     // with the Grid object.
