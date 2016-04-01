@@ -20,7 +20,7 @@
 **
 */
 
-MYAPP.FLATTEN = true;
+MYAPP.FLATTEN = false;
 
 var container = document.getElementById("three-js");
 
@@ -224,7 +224,12 @@ var create_legend_texture = function(zlevels, legend_format) {
 };
 
 var add_geometry_to_scene = function(plot, scene, geometry, color) {
-	var material = new THREE.MeshPhongMaterial( { color: color, polygonOffset: true, polygonOffsetFactor: 0.8 } )
+	var material;
+	if (MYAPP.FLATTEN) {
+		material = new THREE.MeshBasicMaterial( { color: color, polygonOffset: true, polygonOffsetFactor: 0.8 } );
+	} else {
+		material = new THREE.MeshPhongMaterial( { color: color, polygonOffset: true, polygonOffsetFactor: 0.8 } );
+	}
 	var mesh = new THREE.Mesh( geometry, material );
 	mesh.matrix.copy(plot.norm_matrix);
 	mesh.matrixAutoUpdate = false;
@@ -302,17 +307,20 @@ var new_plot3d_scene = function(plot) {
 	var scene = new THREE.Scene();
 
 	var zmin = plot.zlevels[0], zmax = plot.zlevels[plot.zlevels.length - 1];
-	var my_ztransform = MYAPP.FLATTEN && function(z) { return zmin; };
+	var zmin_apply = MYAPP.FLATTEN && function(z) { return zmin; };
+	var zmin_pp_apply = MYAPP.FLATTEN && function(z) { return zmin + (zmax - zmin)*0.01; };
 
 	if (plot.dataset) {
-		var points = create_points(plot.dataset, plot.norm_matrix, 0x8888ff, zselect_dataset(plot.dataset, plot.plotting_columns, my_ztransform));
-		scene.add(points);
+		if (!MYAPP.FLATTEN) {
+			var points = create_points(plot.dataset, plot.norm_matrix, 0x8888ff, zselect_dataset(plot.dataset, plot.plotting_columns));
+			scene.add(points);
+		}
 
-		var proj = create_points(plot.dataset, plot.norm_matrix, 0x000000, zselect_proj(plot.dataset, plot.plotting_columns, plot.zfun, my_ztransform));
+		var proj = create_points(plot.dataset, plot.norm_matrix, 0x000000, zselect_proj(plot.dataset, plot.plotting_columns, plot.zfun, zmin_pp_apply));
 		scene.add(proj);
 	}
 
-	var carrier = gen_carrier_geometry(plot, zmin - (zmax - zmin) / 3, my_ztransform);
+	var carrier = gen_carrier_geometry(plot, zmin - (zmax - zmin) / 3, zmin_apply);
 	carrier.computeFaceNormals();
 	carrier.computeVertexNormals();
 	add_geometry_to_scene(plot, scene, carrier, 0xbbbbbb);
@@ -329,7 +337,7 @@ var new_plot3d_scene = function(plot) {
 
 	var colormap = get_colormap(zlevels.length - 1);
 	for (var i = 0; i < zlevels.length - 1; i++) {
-		var geometry = grid.select_zlevel(zlevels[i], zlevels[i+1], zlevels, my_ztransform);
+		var geometry = grid.select_zlevel(zlevels[i], zlevels[i+1], zlevels, zmin_apply);
 		plot3d_compute_normals(geometry, surf_normal_fun);
 		add_geometry_to_scene(plot, scene, geometry, colormap[i]);
 	}
@@ -345,7 +353,7 @@ var point_camera = function(scene) {
 	if (MYAPP.FLATTEN) {
 		camera.position.x = 0;
 		camera.position.y = 0;
-		camera.position.z = CAMERA_DIST;
+		camera.position.z = 1.5;
 	} else {
 		camera.position.x = 0;
 		camera.position.y = - CAMERA_DIST * Math.cos(CAMERA_ANGLE);
@@ -452,6 +460,19 @@ var animate = function() {
 	requestAnimationFrame(animate);
 	controls.update();
 }
+
+var onChangePlotType = function(event) {
+	MYAPP.FLATTEN = (event.target.value === "contour");
+	if (current_plot) {
+		MYAPP.scene = new_plot3d_scene(current_plot);
+		point_camera(MYAPP.scene);
+		var viewport = renderer.getSize();
+		MYAPP.sceneHUD = plot3d_legend_scene(current_plot, viewport.width, viewport.height);
+		render();
+	}
+}
+
+document.getElementById("plot_type_select").addEventListener("change", onChangePlotType);
 
 render();
 animate();
