@@ -26,7 +26,6 @@ var container = document.getElementById("three-js");
 
 var renderer_element;
 var data_element;
-var current_plot;
 
 var enable_output = function(what) {
 	if (container.firstChild) {
@@ -424,8 +423,8 @@ var setup_plot_scene = function(plot) {
 
 MYAPP.load_wafer_function = function(zfun, normal_fun, dataset, plotting_columns) {
 	populate_data_grid(dataset, data_element);
-	current_plot = new_plot(zfun, normal_fun, dataset, plotting_columns);
-	setup_plot_scene(current_plot);
+	MYAPP.plot = new_plot(zfun, normal_fun, dataset, plotting_columns);
+	setup_plot_scene(MYAPP.plot);
 	render();
 };
 
@@ -433,8 +432,8 @@ setup_cameras(viewport.width, viewport.height);
 
 var zfun0 = function(x, y) { return 0; };
 var normal_fun0 = function(x, y) {return new THREE.Vector3(0, 0, 1); };
-current_plot = new_plot(zfun0, normal_fun0);
-setup_plot_scene(current_plot);
+MYAPP.plot = new_plot(zfun0, normal_fun0);
+setup_plot_scene(MYAPP.plot);
 
 point_camera(MYAPP.scene);
 
@@ -453,7 +452,7 @@ var onWindowResize = function() {
 	var viewport = compute_area_size();
 	setup_cameras(viewport.width, viewport.height);
 	renderer.setSize(viewport.width, viewport.height);
-	MYAPP.sceneHUD = plot3d_legend_scene(current_plot, viewport.width, viewport.height);
+	MYAPP.sceneHUD = plot3d_legend_scene(MYAPP.plot, viewport.width, viewport.height);
 	render();
 }
 
@@ -466,7 +465,7 @@ var animate = function() {
 
 var onChangePlotType = function(event) {
 	MYAPP.FLATTEN = (event.target.value === "contour");
-	setup_plot_scene(current_plot);
+	setup_plot_scene(MYAPP.plot);
 	point_camera(MYAPP.scene);
 	render();
 }
