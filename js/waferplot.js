@@ -415,12 +415,17 @@ var new_plot = function(zfun, normal_fun, dataset, plotting_columns) {
 	return plot;
 };
 
+// Setup the 3D and HUD scenes for the given plot.
+var setup_plot_scene = function(plot) {
+	MYAPP.scene = new_plot3d_scene(plot);
+	var viewport = renderer.getSize();
+	MYAPP.sceneHUD = plot3d_legend_scene(plot, viewport.width, viewport.height);
+}
+
 MYAPP.load_wafer_function = function(zfun, normal_fun, dataset, plotting_columns) {
 	populate_data_grid(dataset, data_element);
 	current_plot = new_plot(zfun, normal_fun, dataset, plotting_columns);
-	MYAPP.scene = new_plot3d_scene(current_plot);
-	var viewport = renderer.getSize();
-	MYAPP.sceneHUD = plot3d_legend_scene(current_plot, viewport.width, viewport.height);
+	setup_plot_scene(current_plot);
 	render();
 };
 
@@ -428,8 +433,8 @@ setup_cameras(viewport.width, viewport.height);
 
 var zfun0 = function(x, y) { return 0; };
 var normal_fun0 = function(x, y) {return new THREE.Vector3(0, 0, 1); };
-var plot_example = new_plot(zfun0, normal_fun0);
-MYAPP.scene = new_plot3d_scene(plot_example);
+current_plot = new_plot(zfun0, normal_fun0);
+setup_plot_scene(current_plot);
 
 point_camera(MYAPP.scene);
 
@@ -448,10 +453,8 @@ var onWindowResize = function() {
 	var viewport = compute_area_size();
 	setup_cameras(viewport.width, viewport.height);
 	renderer.setSize(viewport.width, viewport.height);
-	if (current_plot) {
-		MYAPP.sceneHUD = plot3d_legend_scene(current_plot, viewport.width, viewport.height);
-		render();
-	}
+	MYAPP.sceneHUD = plot3d_legend_scene(current_plot, viewport.width, viewport.height);
+	render();
 }
 
 window.addEventListener('resize', onWindowResize)
@@ -463,13 +466,9 @@ var animate = function() {
 
 var onChangePlotType = function(event) {
 	MYAPP.FLATTEN = (event.target.value === "contour");
-	if (current_plot) {
-		MYAPP.scene = new_plot3d_scene(current_plot);
-		point_camera(MYAPP.scene);
-		var viewport = renderer.getSize();
-		MYAPP.sceneHUD = plot3d_legend_scene(current_plot, viewport.width, viewport.height);
-		render();
-	}
+	setup_plot_scene(current_plot);
+	point_camera(MYAPP.scene);
+	render();
 }
 
 document.getElementById("plot_type_select").addEventListener("change", onChangePlotType);
