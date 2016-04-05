@@ -171,20 +171,24 @@ var populate_meas_selects = function(fx) {
     append_td_with_child(tr, param_select);
 
     tbody.appendChild(tr);
+};
+
+var load_data_text = function(text) {
+    var fx = new FXParser(text);
+    if (fx.matchSfxFormat()) {
+        var time = fx.readDateTime();
+        var meas_info = {tool: "Tool A", time: time};
+        fx.readAll(meas_info);
+    } else {
+        fx.readTabularFormat();
+    }
+    populate_meas_selects(fx);
     load_data_section(fx, current_choice);
 };
 
 var onLoadFile = function(evt) {
     if (evt.target.readyState == FileReader.DONE) {
-        var fx = new FXParser(evt.target.result);
-        if (fx.matchSfxFormat()) {
-            var time = fx.readDateTime();
-            var meas_info = {tool: "Tool A", time: time};
-            fx.readAll(meas_info);
-        } else {
-            fx.readTabularFormat();
-        }
-        populate_meas_selects(fx);
+        load_data_text(evt.target.result);
     }
 };
 
@@ -195,5 +199,7 @@ var on_file_selection = function(evt) {
     reader.onloadend = onLoadFile;
     reader.readAsText(handler);
 };
+
+MYAPP.load_data_text = load_data_text;
 
 document.getElementById('file-select').addEventListener('change', on_file_selection, false);
