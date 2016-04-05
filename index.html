@@ -11,10 +11,18 @@
     <body>
         <div id="app-area">
         <input type="file" id="file-select" />
+        <label>Sample data
+        <select id="example_dataset_select">
+            <option value="undefined"></option>
+            <option value="dataset1">Example 1</option>
+            <option value="dataset2">Example 2</option>
+            <option value="dataset3">Example 3</option>
+        </select></label>
+        <label>Plot type
         <select id="plot_type_select">
             <option value="3d">3D Plot</option>
             <option value="contour">Contour Plot</option>
-        </select>
+        </select></label>
         <div id="select_meas_div"></div>
         <ul id="tab-ul" class="show-nav">
         <li><a href="#" class="selected">Plot</a></li><li><a href="#">Data</a></li></ul>

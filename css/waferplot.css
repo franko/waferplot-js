@@ -59,6 +59,11 @@ div#app-area {
   width: 70%;
 }
 
+label {
+    font-size: 14px;
+    color: #4183c4;
+}
+
 div.help {
   position: absolute;
   text-rendering: optimizeLegibility;

@@ -470,7 +470,28 @@ var onChangePlotType = function(event) {
 	render();
 }
 
+var sample_datasets = {
+	dataset1: "examples/mesures-37pts-set3.csv",
+	dataset2: "examples/Q527127_CMPSTI_SET1.csv",
+	dataset3: "examples/RR_OX6000_POST.csv",
+}
+
+var onChangeDatasetExample = function(event) {
+	var dataset = sample_datasets[event.target.value];
+	if (dataset) {
+		var xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function() {
+			if (xhttp.readyState == 4 && (xhttp.status == 200 || xhttp.status == 0)) {
+				MYAPP.load_data_text(xhttp.responseText);
+			}
+		};
+		xhttp.open("GET", dataset, true);
+		xhttp.send();
+	}
+}
+
 document.getElementById("plot_type_select").addEventListener("change", onChangePlotType);
+document.getElementById("example_dataset_select").addEventListener("change", onChangeDatasetExample);
 
 render();
 animate();
