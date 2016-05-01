@@ -62,12 +62,59 @@ var populate_param_select = function(data) {
     select.selectedIndex = iselect;
 };
 
-var normalize300 = function(x) { return x / 150; };
+var units_find_match = function(vmin, vmax, val, div) {
+    var i0 = Math.floor(vmin / div), i1 = Math.ceil(vmax / div);
+    var ibest = i0, dist_best = Math.abs(val - div * i0);
+    for (var i = i0 + 1; i <= i1; i++) {
+        var dist = Math.abs(val - div * i);
+        if (dist < dist_best) {
+            dist_best = dist;
+            ibest = i;
+        }
+    }
+    return ibest;
+}
+
+/* Find a circular region that contains the all the (X, Y) coordinates
+   of the dataset. The center coordinates and radius of the circle are
+   rounded. */
+var dataset_find_region = function(data, columns) {
+    var N = data.rows();
+    var center_x = data.e(1, columns.x), center_y = data.e(1, columns.y);
+    var min_x = center_x, max_x = center_x;
+    var min_y = center_y, max_y = center_y;
+    for (var i = 2; i <= N; i++) {
+        var x = data.e(i, columns.x), y = data.e(i, columns.y);
+        center_x += x;
+        center_y += y;
+        if (x < min_x) min_x = x;
+        if (x > max_x) max_x = x;
+        if (y < min_y) min_y = y;
+        if (y > max_y) max_y = y;
+    }
+    center_x /= N;
+    center_y /= N;
+    var units = MYAPP.scale_units(Math.max(min_x, min_y), Math.max(max_x, max_y), 12);
+    center_x = units.div * units_find_match(min_x, max_x, center_x, units.div);
+    center_y = units.div * units_find_match(min_y, max_y, center_y, units.div);
+    var radius = 0;
+    for (var i = 1; i <= N; i++) {
+        var x = data.e(i, columns.x), y = data.e(i, columns.y);
+        var r = (x - center_x)*(x - center_x) + (y - center_y)*(y - center_y);
+        if (r > radius) radius = r;
+    }
+    radius = units.div * Math.ceil(Math.sqrt(radius) / units.div);
+    var inv_radius = 1 / radius;
+    return function(x, y) {
+        return [(x - center_x) * inv_radius, (y - center_y) * inv_radius];
+    }
+};
 
 var load_dataset = function(data, plotting_columns) {
-    var tps_param = {regularization: 0.001, plotting_columns: plotting_columns, normalize: normalize300};
+    var xy_norm = dataset_find_region(data, plotting_columns);
+    var tps_param = {regularization: 0.001, plotting_columns: plotting_columns, normalize: xy_norm};
     var fit = MYAPP.tps_fit(data, tps_param);
-    MYAPP.load_wafer_function(fit.eval, fit.eval_normal, data, plotting_columns);
+    MYAPP.load_wafer_function(fit.eval, fit.eval_normal, data, plotting_columns, xy_norm);
 };
 
 var load_data_section = function(fx, choice) {
