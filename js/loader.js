@@ -62,41 +62,25 @@ var populate_param_select = function(data) {
     select.selectedIndex = iselect;
 };
 
-var units_find_match = function(vmin, vmax, val, div) {
-    var i0 = Math.floor(vmin / div), i1 = Math.ceil(vmax / div);
-    var ibest = i0, dist_best = Math.abs(val - div * i0);
-    for (var i = i0 + 1; i <= i1; i++) {
-        var dist = Math.abs(val - div * i);
-        if (dist < dist_best) {
-            dist_best = dist;
-            ibest = i;
-        }
-    }
-    return ibest;
-}
-
 /* Find a circular region that contains the all the (X, Y) coordinates
    of the dataset. The center coordinates and radius of the circle are
    rounded. */
 var dataset_find_region = function(data, columns) {
     var N = data.rows();
-    var center_x = data.e(1, columns.x), center_y = data.e(1, columns.y);
-    var min_x = center_x, max_x = center_x;
-    var min_y = center_y, max_y = center_y;
+    var min_x = data.e(1, columns.x), min_y = data.e(1, columns.y);
+    var max_x = min_x, max_y = min_y;
     for (var i = 2; i <= N; i++) {
         var x = data.e(i, columns.x), y = data.e(i, columns.y);
-        center_x += x;
-        center_y += y;
         if (x < min_x) min_x = x;
         if (x > max_x) max_x = x;
         if (y < min_y) min_y = y;
         if (y > max_y) max_y = y;
     }
-    center_x /= N;
-    center_y /= N;
     var units = MYAPP.scale_units(Math.max(min_x, min_y), Math.max(max_x, max_y), 12);
-    center_x = units.div * units_find_match(min_x, max_x, center_x, units.div);
-    center_y = units.div * units_find_match(min_y, max_y, center_y, units.div);
+    var ix_min = Math.floor(min_x / units.div), ix_max = Math.ceil(max_x / units.div);
+    var iy_min = Math.floor(min_y / units.div), iy_max = Math.ceil(max_y / units.div);
+    center_x = units.div * (ix_min + ix_max) / 2;
+    center_y = units.div * (iy_min + iy_max) / 2;
     var radius = 0;
     for (var i = 1; i <= N; i++) {
         var x = data.e(i, columns.x), y = data.e(i, columns.y);
