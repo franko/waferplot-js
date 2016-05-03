@@ -62,6 +62,14 @@ var populate_param_select = function(data) {
     select.selectedIndex = iselect;
 };
 
+var norm2 = function(x, y) {
+    return Math.sqrt(x*x + y*y);
+}
+
+var round_up = function(value, div) {
+    return div * Math.ceil(value / div);
+}
+
 /* Find a circular region that contains the all the (X, Y) coordinates
    of the dataset. The center coordinates and radius of the circle are
    rounded. */
@@ -77,18 +85,26 @@ var dataset_find_region = function(data, columns) {
         if (y > max_y) max_y = y;
     }
     var units = MYAPP.scale_units(Math.max(min_x, min_y), Math.max(max_x, max_y), 12);
-    var ix_min = Math.floor(min_x / units.div), ix_max = Math.ceil(max_x / units.div);
-    var iy_min = Math.floor(min_y / units.div), iy_max = Math.ceil(max_y / units.div);
-    center_x = units.div * (ix_min + ix_max) / 2;
-    center_y = units.div * (iy_min + iy_max) / 2;
+
+    /* First evaluate center based on mix / max values. */
+    var center_x = (min_x + max_x) / 2, center_y = (min_y + max_y) / 2;
+    var cdist = norm2(center_x, center_y);
+    var rrad = norm2(max_x - min_x, max_y - min_y);
+    var CENTER_TO_RADIUS_SUPRESS_RATIO = 1;
+    if (cdist < CENTER_TO_RADIUS_SUPRESS_RATIO * rrad) {
+        /* In this case the center norm is small compared to the
+           region approx radius. Set center to (0, 0). */
+        center_x = 0;
+        center_y = 0;
+    }
+    /* Now compute the radius with the final center coordinates. */
     var radius = 0;
     for (var i = 1; i <= N; i++) {
         var x = data.e(i, columns.x), y = data.e(i, columns.y);
-        var r = (x - center_x)*(x - center_x) + (y - center_y)*(y - center_y);
+        var r = norm2(x - center_x, y - center_y);
         if (r > radius) radius = r;
     }
-    radius = units.div * Math.ceil(Math.sqrt(radius) / units.div);
-    var inv_radius = 1 / radius;
+    var inv_radius = 1 / round_up(radius, units.div);
     return function(x, y) {
         return [(x - center_x) * inv_radius, (y - center_y) * inv_radius];
     }
