@@ -30,7 +30,8 @@ var mat_data = function(r, c) {
 
 var tps_interpolation_fn = function(w, control_points, normalize) {
     return function(xr, yr) {
-        var x = normalize(xr), y = normalize(yr);
+        var coord = normalize(xr, yr);
+        var x = coord[0], y = coord[1];
         var N = control_points.rows();
         var h = w.e(N+1) + x * w.e(N+2) + y * w.e(N+3);
         for (var i = 1; i <= N; i++) {
@@ -44,7 +45,8 @@ var tps_interpolation_fn = function(w, control_points, normalize) {
 
 var tps_interpolation_normal_fn = function(w, control_points, normalize) {
     return function(xr, yr) {
-        var x = normalize(xr), y = normalize(yr);
+        var coord = normalize(xr, yr);
+        var x = coord[0], y = coord[1];
         var N = control_points.rows();
         var dzdx = w.e(N+2), dzdy = w.e(N+3);
         for (var i = 1; i <= N; i++) {
@@ -56,8 +58,9 @@ var tps_interpolation_normal_fn = function(w, control_points, normalize) {
                 dzdy += w.e(i) * dudr * (y - yi) / r;
             }
         }
-        dzdx *= normalize(1);
-        dzdy *= normalize(1);
+        var dcoord1 = normalize(1, 1), dcoord0 = normalize(0, 0);
+        dzdx *= dcoord1[0] - dcoord0[0];
+        dzdy *= dcoord1[1] - dcoord0[1];
         var nf = Math.sqrt(1 + dzdx*dzdx + dzdy*dzdy);
         return new THREE.Vector3(-dzdx / nf, -dzdy / nf, 1 / nf);
     };
@@ -71,7 +74,7 @@ var tps_fit = function(data, param) {
     var cpdata = [];
     var norm = param.normalize;
     for (var i = 0; i < N; i++) {
-        cpdata[i] = [norm(data.e(i+1, xindex)), norm(data.e(i+1, yindex))];
+        cpdata[i] = norm(data.e(i+1, xindex), data.e(i+1, yindex));
     }
     var control_points = Matrix.create(cpdata);
 

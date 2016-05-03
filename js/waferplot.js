@@ -361,14 +361,23 @@ var point_camera = function(scene) {
 	camera.lookAt(scene.position);
 };
 
-var new_plot = function(zfun, normal_fun, dataset, plotting_columns) {
+var norm_find_scale = function(norm) {
+    var v1 = norm(1, 1), v0 = norm(0, 0);
+    var radius = 1 / (v1[0] - v0[0]);
+    var x0 = -v0[0] * radius, y0 = -v0[1] * radius;
+    return { x0: x0, y0: y0, radius: radius };
+}
+
+var new_plot = function(zfun, normal_fun, xy_norm, dataset, plotting_columns) {
 	var Nx = 80, Ny = 80, Dx = 5, Dy = 5;
 
+    var scale = norm_find_scale(xy_norm);
+
 	var xyeval = function(i, j, action) {
-		var x = -150 + 300 * i / Nx, y = -150 + 300 * j / Ny;
+        var x = -1 + 2 * i / Nx, y = -1 + 2 * j / Ny;
 		var phi = Math.atan2(y, x);
 		var cosphi = Math.max(Math.abs(Math.cos(phi)), Math.abs(Math.sin(phi)));
-		return action(x * cosphi, y * cosphi);
+		return action((x * cosphi) * scale.radius + scale.x0, (y * cosphi) * scale.radius + scale.y0);
     }
 
 	var zmin, zmax;
@@ -394,9 +403,9 @@ var new_plot = function(zfun, normal_fun, dataset, plotting_columns) {
 		return xyeval(i, j, function(x, y) { return new THREE.Vector3(x, y, zfun(x, y)); });
 	};
 
-	var offset = new THREE.Matrix4().setPosition(new THREE.Vector3(0, 0, -zmin));
+	var offset = new THREE.Matrix4().setPosition(new THREE.Vector3(-scale.x0, -scale.y0, -zmin));
 	var Z_SHRINK_FACTOR = 3;
-	var mat = new THREE.Matrix4().makeScale(1/150, 1/150, 1/(Z_SHRINK_FACTOR * zrange)).multiply(offset);
+	var mat = new THREE.Matrix4().makeScale(1/scale.radius, 1/scale.radius, 1/(Z_SHRINK_FACTOR * zrange)).multiply(offset);
 
 	var plot = {
 		Nx: Nx,
@@ -421,9 +430,9 @@ var setup_plot_scene = function(plot) {
 	MYAPP.sceneHUD = plot3d_legend_scene(plot, viewport.width, viewport.height);
 }
 
-MYAPP.load_wafer_function = function(zfun, normal_fun, dataset, plotting_columns) {
+MYAPP.load_wafer_function = function(zfun, normal_fun, dataset, plotting_columns, xy_norm) {
 	populate_data_grid(dataset, data_element);
-	MYAPP.plot = new_plot(zfun, normal_fun, dataset, plotting_columns);
+	MYAPP.plot = new_plot(zfun, normal_fun, xy_norm, dataset, plotting_columns);
 	setup_plot_scene(MYAPP.plot);
 	render();
 };
@@ -432,7 +441,8 @@ setup_cameras(viewport.width, viewport.height);
 
 var zfun0 = function(x, y) { return 0; };
 var normal_fun0 = function(x, y) {return new THREE.Vector3(0, 0, 1); };
-MYAPP.plot = new_plot(zfun0, normal_fun0);
+var xy_norm0 = function(x, y) { return [x / 150, y / 150]; }
+MYAPP.plot = new_plot(zfun0, normal_fun0, xy_norm0);
 setup_plot_scene(MYAPP.plot);
 
 point_camera(MYAPP.scene);
