@@ -114,10 +114,7 @@ var tps_fit = function(data, param) {
     Vd[N+1] = 0;
     Vd[N+2] = 0;
 
-    var L = Matrix.create(Ld), K = Matrix.create(Kd);
-    var V = Vector.create(Vd);
-    var Linv = L.inverse();
-    var w = Linv.multiply(V);
+    var w = Vector.create(numeric.solve(Ld, Vd));
     var fn = tps_interpolation_fn(w, control_points, norm);
     var normal_fn = tps_interpolation_normal_fn(w, control_points, norm);
 
