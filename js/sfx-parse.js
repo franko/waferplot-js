@@ -21,7 +21,9 @@ var is_list_of_numbers = function(row) {
 
 var csvLineSplit = function(line, sep) {
     var empty_re = /^\s*$/;
-    var row = line.replace("\r", "").split(sep);
+    // The map function is used to remove any quote character and/or spaces at
+    // the beginning or end of the string.
+    var row = line.replace("\r", "").split(sep).map(function(s) { return s.replace(/^\s*"?\s*|\s*"?\s*$/gm, ''); });
     for (var k = row.length - 1; k >= 0; k--) {
         if (!empty_re.test(row[k])) break;
         row.pop();
@@ -114,6 +116,7 @@ FXParser.prototype = {
 
     readTabularFormat: function() {
         var headers = this.reader.next();
+        console.log(headers);
         var data = [];
         for (var row = this.next(); row; row = this.next()) {
             if (row.length > 0) {
