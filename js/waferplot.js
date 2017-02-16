@@ -309,7 +309,7 @@ var new_plot3d_scene = function(plot) {
 	var zmin_apply = MYAPP.FLATTEN && function(z) { return zmin; };
 	var zmin_pp_apply = MYAPP.FLATTEN && function(z) { return zmin + (zmax - zmin)*0.01; };
 
-	if (plot.dataset) {
+	if (plot.dataset && plot.show_points) {
 		if (!MYAPP.FLATTEN) {
 			var points = create_points(plot.dataset, plot.norm_matrix, 0x8888ff, zselect_dataset(plot.dataset, plot.plotting_columns));
 			scene.add(points);
@@ -418,6 +418,7 @@ var new_plot = function(zfun, normal_fun, xy_norm, dataset, plotting_columns) {
 		plotting_columns: plotting_columns,
 		norm_matrix: mat,
 		legend_format: zunits.format,
+		show_points: document.getElementById("show-points-check").checked,
 	};
 
 	return plot;
@@ -468,6 +469,10 @@ var onWindowResize = function() {
 
 window.addEventListener('resize', onWindowResize)
 
+var refresh_plot_options = function(plot) {
+	plot.show_points = document.getElementById("show-points-check").checked;
+}
+
 var animate = function() {
 	requestAnimationFrame(animate);
 	controls.update();
@@ -502,6 +507,11 @@ var onChangeDatasetExample = function(event) {
 
 document.getElementById("plot_type_select").addEventListener("change", onChangePlotType);
 document.getElementById("example_dataset_select").addEventListener("change", onChangeDatasetExample);
+document.getElementById("show-points-check").addEventListener("change", function(event) {
+	refresh_plot_options(MYAPP.plot);
+	setup_plot_scene(MYAPP.plot);
+	render();
+});
 
 render();
 animate();
