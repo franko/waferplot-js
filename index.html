@@ -8,9 +8,11 @@
         <meta name="description" content="An HTML application to display 3D plots and contour plots for wafer data">
     </head>
     <link rel="stylesheet" href="css/waferplot.css">
+    <link rel="stylesheet" href="css/spreadsheet.css">
     <body>
         <div id="app-area">
         <input type="file" id="file-select" />
+        <button id="paste-data-bt">Paste data</button>
         <label>Sample data
         <select id="example_dataset_select">
             <option value="undefined"></option>
@@ -26,8 +28,10 @@
         <div id="select_meas_div"></div>
         <ul id="tab-ul" class="show-nav">
         <li><a href="#" class="selected">Plot</a></li><li><a href="#">Data</a></li></ul>
-        <div>show points<input type="checkbox" id="show-points-check" class="data" checked></div>
+        <label>show points<input type="checkbox" id="show-points-check" class="data" checked></label>
         <div id="three-js"></div>
+        <script src="js/clipboard.js"></script>
+        <script src="js/spreadsheet.js"></script>
         <script src="js/loader.js"></script>
         <script src="js/sfx-parse.js"></script>
         <script src="js/lib/sylvester-min.js"></script>

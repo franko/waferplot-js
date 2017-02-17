@@ -27,6 +27,22 @@ var container = document.getElementById("three-js");
 var renderer_element;
 var data_element;
 
+var pasteData = function() {
+	var app_area = document.getElementById("app-area");
+	var div = document.createElement("div");
+	var table = spreadsheet.createTable(12, 4);
+	div.appendChild(table.element);
+	var bt = document.createElement("button");
+	bt.appendChild(document.createTextNode("Done"));
+	bt.addEventListener("click", function() {
+		var text = table.getText();
+		document.body.replaceChild(app_area, div);
+		MYAPP.load_data_text(text);
+	});
+	div.appendChild(bt);
+	document.body.replaceChild(div, app_area);
+};
+
 var enable_output = function(what) {
 	if (container.firstChild) {
 		container.removeChild(container.firstChild);
@@ -505,6 +521,7 @@ var onChangeDatasetExample = function(event) {
 	}
 }
 
+document.getElementById("paste-data-bt").addEventListener("click", pasteData);
 document.getElementById("plot_type_select").addEventListener("change", onChangePlotType);
 document.getElementById("example_dataset_select").addEventListener("change", onChangeDatasetExample);
 document.getElementById("show-points-check").addEventListener("change", function(event) {
