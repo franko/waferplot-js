@@ -36,7 +36,7 @@ var getCellIndexes = function(td) {
     return decodeCellId(id);
 };
 
-function createDataTable(initialRows, initialCols) {
+var createTable = function(initialRows, initialCols) {
     var tableElement, tableRows = 0, tableCols = 0;
     var selecting = false, selStartIndexes, selEndIndexes;
     var tableId = newTableId();
@@ -204,16 +204,33 @@ function createDataTable(initialRows, initialCols) {
         tableCols = colsRequest;
     };
 
+    var getText = function() {
+        var lines = [];
+        for (var i = 0; i < tableElement.rows.length; i++) {
+            var row = tableElement.rows[i];
+            var line = [];
+            for (var j = 0; j < row.cells.length; j++) {
+                var s = row.cells[j].firstChild.nodeValue;
+                if (!s.match(/^\s*$/)) {
+                    line.push(s);
+                }
+            }
+            if (line.length > 0) {
+                lines.push(line.join());
+            }
+        }
+        return lines.join("\n");
+    };
+
     // Create an empty table with thead child.
     tableElement = document.createElement("table");
+    tableElement.className = "spreadsheet";
     var thead = document.createElement("thead");
     tableElement.appendChild(thead);
 
     ensureTableSize(initialRows, initialCols);
 
-    return {element: tableElement};
+    return {element: tableElement, getText: getText};
 }
 
-var div = document.getElementById("data-table");
-var dataTable = createDataTable(4, 4);
-div.appendChild(dataTable.element);
+spreadsheet = { createTable: createTable };
