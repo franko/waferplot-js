@@ -1,0 +1,24 @@
+table.spreadsheet {
+    border-collapse: collapse;
+}
+
+.spreadsheet td {
+    border: 1px solid #999;
+    width: 60pt;
+    height: 16pt;
+    padding: 0;
+    text-align: right;
+    font-size: 10pt;
+    font-family: sans-serif;
+}
+
+.spreadsheet td.selected {
+    background-color: #e0eeff;
+}
+
+.spreadsheet th {
+    background-color: #ccc;
+    padding: 1px 3px;
+    font-weight: bold;
+    text-align: center;
+}
