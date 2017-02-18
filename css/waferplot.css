@@ -72,3 +72,25 @@ div.help {
   right: 5px;
   width: 27%;
 }
+
+.overlay {
+    width: 100%;
+    min-height: 100%;
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: rgba(0,0,0, 0.5);
+}
+
+.overlay-content {
+    border-radius: 25px;
+    border: 2px solid #eef;
+    padding: 20px;
+    height: 90%;
+    width: 50%;
+    z-index: 2;
+    margin-top: 10%;
+    margin-left: 25%;
+    background-color: rgba(245,245,240,1);
+}

@@ -1,9 +1,11 @@
 table.spreadsheet {
     border-collapse: collapse;
+    background-color: #fff;
+    margin: 0 auto;
 }
 
 .spreadsheet td {
-    border: 1px solid #999;
+    border: 1px solid #eee;
     width: 60pt;
     height: 16pt;
     padding: 0;

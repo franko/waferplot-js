@@ -29,18 +29,22 @@ var data_element;
 
 var pasteData = function() {
 	var app_area = document.getElementById("app-area");
-	var div = document.createElement("div");
+	var div_overlay = document.createElement("div");
+	div_overlay.className = "overlay";
+	div = document.createElement("div");
+	div.className = "overlay-content";
 	var table = spreadsheet.createTable(12, 4);
 	div.appendChild(table.element);
 	var bt = document.createElement("button");
 	bt.appendChild(document.createTextNode("Done"));
 	bt.addEventListener("click", function() {
 		var text = table.getText();
-		document.body.replaceChild(app_area, div);
+		document.body.removeChild(div_overlay);
 		MYAPP.load_data_text(text);
 	});
 	div.appendChild(bt);
-	document.body.replaceChild(div, app_area);
+	div_overlay.appendChild(div);
+	document.body.appendChild(div_overlay);
 };
 
 var enable_output = function(what) {
