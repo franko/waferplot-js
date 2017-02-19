@@ -1,7 +1,8 @@
 table.spreadsheet {
     border-collapse: collapse;
     background-color: #fff;
-    margin: 0 auto;
+    float: left;
+    margin-right: 5%;
 }
 
 .spreadsheet td {

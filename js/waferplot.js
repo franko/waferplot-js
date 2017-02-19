@@ -27,6 +27,13 @@ var container = document.getElementById("three-js");
 var renderer_element;
 var data_element;
 
+var createButton = function(text, onclick) {
+	var bt = document.createElement("button");
+	bt.appendChild(document.createTextNode(text));
+	bt.addEventListener("click", onclick);
+	return bt;
+};
+
 var pasteData = function() {
 	var app_area = document.getElementById("app-area");
 	var div_overlay = document.createElement("div");
@@ -35,14 +42,23 @@ var pasteData = function() {
 	div.className = "overlay-content";
 	var table = spreadsheet.createTable(12, 4);
 	div.appendChild(table.element);
-	var bt = document.createElement("button");
-	bt.appendChild(document.createTextNode("Done"));
-	bt.addEventListener("click", function() {
+
+	var bt_done = createButton("Done", function() {
 		var text = table.getText();
 		document.body.removeChild(div_overlay);
 		MYAPP.load_data_text(text);
 	});
-	div.appendChild(bt);
+	div.appendChild(bt_done);
+
+	var bt_cancel = createButton("Cancel", function() {
+		document.body.removeChild(div_overlay);
+	});
+	div.appendChild(bt_cancel);
+
+	var div_clear = document.createElement("div");
+	div_clear.className = "clear";
+	div.appendChild(div_clear);
+
 	div_overlay.appendChild(div);
 	document.body.appendChild(div_overlay);
 };

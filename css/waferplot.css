@@ -94,3 +94,7 @@ div.help {
     margin-left: 25%;
     background-color: rgba(245,245,240,1);
 }
+
+.clear {
+  clear: both;
+}
