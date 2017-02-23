@@ -27,6 +27,51 @@ var container = document.getElementById("three-js");
 var renderer_element;
 var data_element;
 
+var createButton = function(text, onclick) {
+	var bt = document.createElement("button");
+	bt.appendChild(document.createTextNode(text));
+	bt.addEventListener("click", onclick);
+	return bt;
+};
+
+var newClearDiv = function() {
+    var div_clear = document.createElement("div");
+	div_clear.className = "clear";
+	return div_clear;
+};
+
+var pasteData = function() {
+	var app_area = document.getElementById("app-area");
+	var div_overlay = document.createElement("div");
+	div_overlay.className = "overlay";
+	div = document.createElement("div");
+	div.className = "overlay-content";
+
+	var text = document.createElement("p");
+	text.innerHTML = "Enter or paste the data below in tabular format.<br> Enter the data's headers in the first row.";
+	div.appendChild(text);
+	div.appendChild(newClearDiv());
+
+	var table = spreadsheet.createTable(12, 4);
+	div.appendChild(table.element);
+
+	var bt_done = createButton("Done", function() {
+		var text = table.getText();
+		document.body.removeChild(div_overlay);
+		MYAPP.load_data_text(text);
+	});
+	div.appendChild(bt_done);
+
+	var bt_cancel = createButton("Cancel", function() {
+		document.body.removeChild(div_overlay);
+	});
+	div.appendChild(bt_cancel);
+	div.appendChild(newClearDiv());
+
+	div_overlay.appendChild(div);
+	document.body.appendChild(div_overlay);
+};
+
 var enable_output = function(what) {
 	if (container.firstChild) {
 		container.removeChild(container.firstChild);
@@ -505,6 +550,7 @@ var onChangeDatasetExample = function(event) {
 	}
 }
 
+document.getElementById("paste-data-bt").addEventListener("click", pasteData);
 document.getElementById("plot_type_select").addEventListener("change", onChangePlotType);
 document.getElementById("example_dataset_select").addEventListener("change", onChangeDatasetExample);
 document.getElementById("show-points-check").addEventListener("change", function(event) {
