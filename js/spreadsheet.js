@@ -36,13 +36,14 @@ var getCellIndexes = function(td) {
     return decodeCellId(id);
 };
 
-var createTable = function(initialRows, initialCols) {
+var createTable = function(initialRows, initialCols, pasteElement) {
     var tableElement, tableRows = 0, tableCols = 0;
     var selecting = false, selStartIndexes, selEndIndexes;
     var tableId = newTableId();
+    var cellEditing = null;
 
-    var getSelection = function() {
-        if (!selStartIndexes) return "";
+    var getSelectionRange = function() {
+        if (!selStartIndexes) return [0, 0, -1, -1];
         var i1 = selStartIndexes[0], j1 = selStartIndexes[1];
         var i2 = selEndIndexes[0], j2 = selEndIndexes[1];
         if (i2 < i1) {
@@ -55,6 +56,12 @@ var createTable = function(initialRows, initialCols) {
             j1 = j2;
             j2 = itemp;
         }
+        return [i1, j1, i2, j2];
+    };
+
+    var getSelection = function() {
+        var sel = getSelectionRange();
+        var i1 = sel[0], j1 = sel[1], i2 = sel[2], j2 = sel[3];
         var lines = [];
         for (var i = i1; i <= i2; i++) {
             var row = [];
@@ -67,7 +74,27 @@ var createTable = function(initialRows, initialCols) {
         return lines.join("\n");
     }
 
-    var tableOnKeyDown = copyToClipboardOnKeyPress(getSelection);
+    var clearSelection = function() {
+        var sel = getSelectionRange();
+        var i1 = sel[0], j1 = sel[1], i2 = sel[2], j2 = sel[3];
+        for (var i = i1; i <= i2; i++) {
+            for (var j = j1; j <= j2; j++) {
+                var td = document.getElementById(encodeCellId(tableId, i, j));
+                td.textContent = "";
+            }
+        }
+    };
+
+    var copySelectionFn = copyToClipboardOnKeyPress(getSelection);
+
+    var tableOnKeyDown = function(evt) {
+        var c = evt.keyCode;
+        if (c == 46) { /* Delete keyword. */
+            clearSelection();
+        } else {
+            copySelectionFn(evt);
+        }
+    };
 
     var createTableTh = function(j) {
         var th = document.createElement("th");
@@ -82,9 +109,8 @@ var createTable = function(initialRows, initialCols) {
         td.onmousedown = onTdMouseDown;
         td.onmousemove = onTdMouseMove;
         td.onmouseup = onTdMouseUp;
-        td.onpaste = cellOnPaste;
+        td.ondblclick = onDoubleClick;
         td.onkeypress = onTdKeyPress;
-        td.onkeydown = tableOnKeyDown;
         var text = document.createTextNode("");
         td.appendChild(text);
         return td;
@@ -128,10 +154,17 @@ var createTable = function(initialRows, initialCols) {
     };
 
     var onTdMouseDown = function(e) {
+        if (cellEditing) {
+            if (cellEditing === e.target) return;
+            cellEditing = null;
+        }
+        e.preventDefault();
         selStartIndexes = getCellIndexes(e.target);
         selEndIndexes = selStartIndexes;
         selecting = true;
         spreadSheetMarkSelected(selStartIndexes, selEndIndexes);
+        pasteElement.value = e.target.textContent;
+        pasteElement.focus();
     };
 
     var onTdMouseUp = function(e) {
@@ -148,8 +181,14 @@ var createTable = function(initialRows, initialCols) {
     var onTdKeyPress = function(e) {
         if (e.keyCode === 13) {
             e.target.blur();
+            cellEditing = null;
             return false;
         }
+    };
+
+    var onDoubleClick = function(e) {
+        cellEditing = e.target;
+        e.target.focus();
     };
 
     var setTableElements = function(data, indexes) {
@@ -168,8 +207,8 @@ var createTable = function(initialRows, initialCols) {
         }
     };
 
-    var cellOnPaste = function(e) {
-        var indexes = getCellIndexes(e.target);
+    var tableOnPaste = function(e) {
+        var indexes = selStartIndexes;
         var pastedText = e.clipboardData.getData('text/plain');
         var pastedData = parseTabular(pastedText);
         // When calling ensureTableSize we ask for one more row and column of what needed.
@@ -229,6 +268,9 @@ var createTable = function(initialRows, initialCols) {
     tableElement.appendChild(thead);
 
     ensureTableSize(initialRows, initialCols);
+
+    pasteElement.onpaste = tableOnPaste;
+    pasteElement.onkeydown = tableOnKeyDown;
 
     return {element: tableElement, getText: getText};
 }

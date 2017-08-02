@@ -50,9 +50,14 @@ var pasteData = function() {
 	var text = document.createElement("p");
 	text.innerHTML = "Enter or paste the data below in tabular format.<br> Enter the data's headers in the first row.";
 	div.appendChild(text);
+
+	var pasteArea = document.createElement("input");
+	pasteArea.type = "text";
+	div.appendChild(pasteArea);
+
 	div.appendChild(newClearDiv());
 
-	var table = spreadsheet.createTable(12, 4);
+	var table = spreadsheet.createTable(12, 4, pasteArea);
 	div.appendChild(table.element);
 
 	var bt_done = createButton("Done", function() {
