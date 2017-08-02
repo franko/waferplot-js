@@ -36,6 +36,14 @@ var getCellIndexes = function(td) {
     return decodeCellId(id);
 };
 
+var pasteElementIsIndirect = function(element) {
+    return (element.className === "indirect");
+};
+
+var pasteElementOnMouseDown = function(evt) {
+    evt.target.className = "";
+};
+
 var createTable = function(initialRows, initialCols, pasteElement) {
     var tableElement, tableRows = 0, tableCols = 0;
     var selecting = false, selStartIndexes, selEndIndexes;
@@ -87,7 +95,8 @@ var createTable = function(initialRows, initialCols, pasteElement) {
 
     var copySelectionFn = copyToClipboardOnKeyPress(getSelection);
 
-    var tableOnKeyDown = function(evt) {
+    var pasteElementOnKeyDown = function(evt) {
+        if (!pasteElementIsIndirect(evt.target)) return;
         var c = evt.keyCode;
         if (c == 46) { /* Delete keyword. */
             clearSelection();
@@ -163,6 +172,7 @@ var createTable = function(initialRows, initialCols, pasteElement) {
         selEndIndexes = selStartIndexes;
         selecting = true;
         spreadSheetMarkSelected(selStartIndexes, selEndIndexes);
+        pasteElement.className = "indirect";
         pasteElement.value = e.target.textContent;
         pasteElement.focus();
     };
@@ -207,7 +217,9 @@ var createTable = function(initialRows, initialCols, pasteElement) {
         }
     };
 
-    var tableOnPaste = function(e) {
+    var pasteElementOnPaste = function(e) {
+        if (!pasteElementIsIndirect(e.target)) return;
+        e.preventDefault();
         var indexes = selStartIndexes;
         var pastedText = e.clipboardData.getData('text/plain');
         var pastedData = parseTabular(pastedText);
@@ -269,8 +281,10 @@ var createTable = function(initialRows, initialCols, pasteElement) {
 
     ensureTableSize(initialRows, initialCols);
 
-    pasteElement.onpaste = tableOnPaste;
-    pasteElement.onkeydown = tableOnKeyDown;
+    pasteElement.className = "";
+    pasteElement.onpaste = pasteElementOnPaste;
+    pasteElement.onmousedown = pasteElementOnMouseDown;
+    pasteElement.onkeydown = pasteElementOnKeyDown;
 
     return {element: tableElement, getText: getText};
 }
