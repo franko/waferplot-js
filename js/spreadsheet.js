@@ -44,7 +44,7 @@ var pasteElementOnMouseDown = function(evt) {
     evt.target.className = "";
 };
 
-var createTable = function(initialRows, initialCols, pasteElement) {
+var createTable = function(initialRows, initialCols, textInputElement) {
     var tableElement, tableRows = 0, tableCols = 0;
     var selecting = false, selStartIndexes, selEndIndexes;
     var tableId = newTableId();
@@ -108,11 +108,11 @@ var createTable = function(initialRows, initialCols, pasteElement) {
         var c = evt.keyCode;
         if (c == 46) { /* Delete keyword. */
             clearSelection();
-            if (pasteElementIsIndirect(pasteElement)) {
-                pasteElement.value = "";
+            if (pasteElementIsIndirect(textInputElement)) {
+                textInputElement.value = "";
             }
         } else if (evt.key !== "" && !evt.ctrlKey && !evt.altKey) {
-            pasteElement.value = "";
+            textInputElement.value = "";
             var td = getStartSelectionCell();
             if (td) {
                 td.textContent = "";
@@ -127,7 +127,7 @@ var createTable = function(initialRows, initialCols, pasteElement) {
     var pasteElementOnInput = function(evt) {
         var td = getStartSelectionCell();
         if (td) {
-            td.textContent = pasteElement.value;
+            td.textContent = textInputElement.value;
         }
     };
 
@@ -198,9 +198,9 @@ var createTable = function(initialRows, initialCols, pasteElement) {
         selEndIndexes = selStartIndexes;
         selecting = true;
         spreadSheetMarkSelected(selStartIndexes, selEndIndexes);
-        pasteElement.className = "indirect";
-        pasteElement.value = e.target.textContent;
-        pasteElement.focus();
+        textInputElement.className = "indirect";
+        textInputElement.value = e.target.textContent;
+        textInputElement.focus();
     };
 
     var onTdMouseUp = function(e) {
@@ -218,7 +218,7 @@ var createTable = function(initialRows, initialCols, pasteElement) {
         if (e.keyCode === 13) {
             e.target.blur();
             cellEditing = null;
-            pasteElement.value = e.target.textContent;
+            textInputElement.value = e.target.textContent;
             return false;
         }
     };
@@ -304,11 +304,11 @@ var createTable = function(initialRows, initialCols, pasteElement) {
 
     ensureTableSize(initialRows, initialCols);
 
-    pasteElement.className = "";
-    pasteElement.onpaste = pasteElementOnPaste;
-    pasteElement.onmousedown = pasteElementOnMouseDown;
-    pasteElement.onkeydown = pasteElementOnKeyDown;
-    pasteElement.oninput = pasteElementOnInput;
+    textInputElement.className = "";
+    textInputElement.onpaste = pasteElementOnPaste;
+    textInputElement.onmousedown = pasteElementOnMouseDown;
+    textInputElement.onkeydown = pasteElementOnKeyDown;
+    textInputElement.oninput = pasteElementOnInput;
 
     return {element: tableElement, getText: getText};
 }
