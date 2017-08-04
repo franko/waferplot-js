@@ -25,3 +25,7 @@ table.spreadsheet {
     font-weight: bold;
     text-align: center;
 }
+
+input.indirect {
+    background-color: #d8d8d8;
+}

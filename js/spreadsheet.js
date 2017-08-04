@@ -93,6 +93,14 @@ var createTable = function(initialRows, initialCols, pasteElement) {
         }
     };
 
+    var getStartSelectionCell = function() {
+        if (selStartIndexes) {
+            var i = selStartIndexes[0], j = selStartIndexes[1];
+            return document.getElementById(encodeCellId(tableId, i, j));
+        }
+        return null;
+    };
+
     var copySelectionFn = copyToClipboardOnKeyPress(getSelection);
 
     var pasteElementOnKeyDown = function(evt) {
@@ -100,8 +108,26 @@ var createTable = function(initialRows, initialCols, pasteElement) {
         var c = evt.keyCode;
         if (c == 46) { /* Delete keyword. */
             clearSelection();
+            if (pasteElementIsIndirect(pasteElement)) {
+                pasteElement.value = "";
+            }
+        } else if (evt.key !== "" && !evt.ctrlKey && !evt.altKey) {
+            pasteElement.value = "";
+            var td = getStartSelectionCell();
+            if (td) {
+                td.textContent = "";
+                td.focus();
+                cellEditing = td;
+            }
         } else {
             copySelectionFn(evt);
+        }
+    };
+
+    var pasteElementOnInput = function(evt) {
+        var td = getStartSelectionCell();
+        if (td) {
+            td.textContent = pasteElement.value;
         }
     };
 
@@ -192,6 +218,7 @@ var createTable = function(initialRows, initialCols, pasteElement) {
         if (e.keyCode === 13) {
             e.target.blur();
             cellEditing = null;
+            pasteElement.value = e.target.textContent;
             return false;
         }
     };
@@ -281,6 +308,7 @@ var createTable = function(initialRows, initialCols, pasteElement) {
     pasteElement.onpaste = pasteElementOnPaste;
     pasteElement.onmousedown = pasteElementOnMouseDown;
     pasteElement.onkeydown = pasteElementOnKeyDown;
+    pasteElement.oninput = pasteElementOnInput;
 
     return {element: tableElement, getText: getText};
 }
