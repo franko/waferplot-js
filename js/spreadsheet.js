@@ -36,11 +36,11 @@ var getCellIndexes = function(td) {
     return decodeCellId(id);
 };
 
-var pasteElementIsIndirect = function(element) {
+var inputElementIsIndirect = function(element) {
     return (element.className === "indirect");
 };
 
-var pasteElementOnMouseDown = function(evt) {
+var inputElementOnMouseDown = function(evt) {
     evt.target.className = "";
 };
 
@@ -103,12 +103,12 @@ var createTable = function(initialRows, initialCols, textInputElement) {
 
     var copySelectionFn = copyToClipboardOnKeyPress(getSelection);
 
-    var pasteElementOnKeyDown = function(evt) {
-        if (!pasteElementIsIndirect(evt.target)) return;
+    var inputElementOnKeyDown = function(evt) {
+        if (!inputElementIsIndirect(evt.target)) return;
         var c = evt.keyCode;
         if (c == 46) { /* Delete keyword. */
             clearSelection();
-            if (pasteElementIsIndirect(textInputElement)) {
+            if (inputElementIsIndirect(textInputElement)) {
                 textInputElement.value = "";
             }
         } else if (evt.key !== "" && !evt.ctrlKey && !evt.altKey) {
@@ -124,7 +124,7 @@ var createTable = function(initialRows, initialCols, textInputElement) {
         }
     };
 
-    var pasteElementOnInput = function(evt) {
+    var inputElementOnInput = function(evt) {
         var td = getStartSelectionCell();
         if (td) {
             td.textContent = textInputElement.value;
@@ -240,8 +240,8 @@ var createTable = function(initialRows, initialCols, textInputElement) {
         }
     };
 
-    var pasteElementOnPaste = function(e) {
-        if (!pasteElementIsIndirect(e.target)) return;
+    var inputElementOnPaste = function(e) {
+        if (!inputElementIsIndirect(e.target)) return;
         e.preventDefault();
         var indexes = selStartIndexes;
         var pastedText = e.clipboardData.getData('text/plain');
@@ -305,10 +305,10 @@ var createTable = function(initialRows, initialCols, textInputElement) {
     ensureTableSize(initialRows, initialCols);
 
     textInputElement.className = "";
-    textInputElement.onpaste = pasteElementOnPaste;
-    textInputElement.onmousedown = pasteElementOnMouseDown;
-    textInputElement.onkeydown = pasteElementOnKeyDown;
-    textInputElement.oninput = pasteElementOnInput;
+    textInputElement.onpaste = inputElementOnPaste;
+    textInputElement.onmousedown = inputElementOnMouseDown;
+    textInputElement.onkeydown = inputElementOnKeyDown;
+    textInputElement.oninput = inputElementOnInput;
 
     return {element: tableElement, getText: getText};
 }
