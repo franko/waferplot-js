@@ -36,13 +36,22 @@ var getCellIndexes = function(td) {
     return decodeCellId(id);
 };
 
-var createTable = function(initialRows, initialCols) {
+var inputElementOnMouseDown = function(evt) {
+    evt.target.className = "";
+};
+
+var createTable = function(initialRows, initialCols, textInputElement) {
     var tableElement, tableRows = 0, tableCols = 0;
     var selecting = false, selStartIndexes, selEndIndexes;
     var tableId = newTableId();
+    var cellEditing = null;
 
-    var getSelection = function() {
-        if (!selStartIndexes) return "";
+    var inputElementIsIndirect = function() {
+        return (textInputElement.className === "indirect");
+    };
+
+    var getSelectionRange = function() {
+        if (!selStartIndexes) return [0, 0, -1, -1];
         var i1 = selStartIndexes[0], j1 = selStartIndexes[1];
         var i2 = selEndIndexes[0], j2 = selEndIndexes[1];
         if (i2 < i1) {
@@ -55,6 +64,12 @@ var createTable = function(initialRows, initialCols) {
             j1 = j2;
             j2 = itemp;
         }
+        return [i1, j1, i2, j2];
+    };
+
+    var getSelection = function() {
+        var sel = getSelectionRange();
+        var i1 = sel[0], j1 = sel[1], i2 = sel[2], j2 = sel[3];
         var lines = [];
         for (var i = i1; i <= i2; i++) {
             var row = [];
@@ -67,7 +82,54 @@ var createTable = function(initialRows, initialCols) {
         return lines.join("\n");
     }
 
-    var tableOnKeyDown = copyToClipboardOnKeyPress(getSelection);
+    var clearSelection = function() {
+        var sel = getSelectionRange();
+        var i1 = sel[0], j1 = sel[1], i2 = sel[2], j2 = sel[3];
+        for (var i = i1; i <= i2; i++) {
+            for (var j = j1; j <= j2; j++) {
+                var td = document.getElementById(encodeCellId(tableId, i, j));
+                td.textContent = "";
+            }
+        }
+    };
+
+    var getStartSelectionCell = function() {
+        if (selStartIndexes) {
+            var i = selStartIndexes[0], j = selStartIndexes[1];
+            return document.getElementById(encodeCellId(tableId, i, j));
+        }
+        return null;
+    };
+
+    var copySelectionFn = copyToClipboardOnKeyPress(getSelection);
+
+    var inputElementOnKeyDown = function(evt) {
+        if (!inputElementIsIndirect()) return;
+        var c = evt.keyCode;
+        if (c == 46) { /* Delete keyword. */
+            clearSelection();
+            if (inputElementIsIndirect()) {
+                textInputElement.value = "";
+            }
+        } else if (evt.key !== "" && !evt.ctrlKey && !evt.altKey) {
+            textInputElement.value = "";
+            var td = getStartSelectionCell();
+            if (td) {
+                td.textContent = "";
+                td.focus();
+                cellEditing = td;
+            }
+        } else {
+            copySelectionFn(evt);
+        }
+    };
+
+    var inputElementOnInput = function(evt) {
+        var td = getStartSelectionCell();
+        if (td) {
+            td.textContent = textInputElement.value;
+        }
+    };
 
     var createTableTh = function(j) {
         var th = document.createElement("th");
@@ -82,9 +144,8 @@ var createTable = function(initialRows, initialCols) {
         td.onmousedown = onTdMouseDown;
         td.onmousemove = onTdMouseMove;
         td.onmouseup = onTdMouseUp;
-        td.onpaste = cellOnPaste;
+        td.ondblclick = onDoubleClick;
         td.onkeypress = onTdKeyPress;
-        td.onkeydown = tableOnKeyDown;
         var text = document.createTextNode("");
         td.appendChild(text);
         return td;
@@ -128,10 +189,18 @@ var createTable = function(initialRows, initialCols) {
     };
 
     var onTdMouseDown = function(e) {
+        if (cellEditing) {
+            if (cellEditing === e.target) return;
+            cellEditing = null;
+        }
+        e.preventDefault();
         selStartIndexes = getCellIndexes(e.target);
         selEndIndexes = selStartIndexes;
         selecting = true;
         spreadSheetMarkSelected(selStartIndexes, selEndIndexes);
+        textInputElement.className = "indirect";
+        textInputElement.value = e.target.textContent;
+        textInputElement.focus();
     };
 
     var onTdMouseUp = function(e) {
@@ -148,8 +217,15 @@ var createTable = function(initialRows, initialCols) {
     var onTdKeyPress = function(e) {
         if (e.keyCode === 13) {
             e.target.blur();
+            cellEditing = null;
+            textInputElement.value = e.target.textContent;
             return false;
         }
+    };
+
+    var onDoubleClick = function(e) {
+        cellEditing = e.target;
+        e.target.focus();
     };
 
     var setTableElements = function(data, indexes) {
@@ -159,17 +235,15 @@ var createTable = function(initialRows, initialCols) {
             if (!row) continue;
             for (var j = 0; j < row.length; j++) {
                 var td = document.getElementById(encodeCellId(tableId, i0+i, j0+j));
-                if (td.firstChild.nodeName === "INPUT") {
-                    td.firstChild.value = row[j];
-                } else {
-                    td.firstChild.nodeValue = row[j];
-                }
+                td.textContent = row[j];
             }
         }
     };
 
-    var cellOnPaste = function(e) {
-        var indexes = getCellIndexes(e.target);
+    var inputElementOnPaste = function(e) {
+        if (!inputElementIsIndirect()) return;
+        e.preventDefault();
+        var indexes = selStartIndexes;
         var pastedText = e.clipboardData.getData('text/plain');
         var pastedData = parseTabular(pastedText);
         // When calling ensureTableSize we ask for one more row and column of what needed.
@@ -229,6 +303,12 @@ var createTable = function(initialRows, initialCols) {
     tableElement.appendChild(thead);
 
     ensureTableSize(initialRows, initialCols);
+
+    textInputElement.className = "";
+    textInputElement.onpaste = inputElementOnPaste;
+    textInputElement.onmousedown = inputElementOnMouseDown;
+    textInputElement.onkeydown = inputElementOnKeyDown;
+    textInputElement.oninput = inputElementOnInput;
 
     return {element: tableElement, getText: getText};
 }
