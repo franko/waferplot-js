@@ -36,10 +36,6 @@ var getCellIndexes = function(td) {
     return decodeCellId(id);
 };
 
-var inputElementIsIndirect = function(element) {
-    return (element.className === "indirect");
-};
-
 var inputElementOnMouseDown = function(evt) {
     evt.target.className = "";
 };
@@ -49,6 +45,10 @@ var createTable = function(initialRows, initialCols, textInputElement) {
     var selecting = false, selStartIndexes, selEndIndexes;
     var tableId = newTableId();
     var cellEditing = null;
+
+    var inputElementIsIndirect = function() {
+        return (textInputElement.className === "indirect");
+    };
 
     var getSelectionRange = function() {
         if (!selStartIndexes) return [0, 0, -1, -1];
@@ -104,11 +104,11 @@ var createTable = function(initialRows, initialCols, textInputElement) {
     var copySelectionFn = copyToClipboardOnKeyPress(getSelection);
 
     var inputElementOnKeyDown = function(evt) {
-        if (!inputElementIsIndirect(evt.target)) return;
+        if (!inputElementIsIndirect()) return;
         var c = evt.keyCode;
         if (c == 46) { /* Delete keyword. */
             clearSelection();
-            if (inputElementIsIndirect(textInputElement)) {
+            if (inputElementIsIndirect()) {
                 textInputElement.value = "";
             }
         } else if (evt.key !== "" && !evt.ctrlKey && !evt.altKey) {
@@ -241,7 +241,7 @@ var createTable = function(initialRows, initialCols, textInputElement) {
     };
 
     var inputElementOnPaste = function(e) {
-        if (!inputElementIsIndirect(e.target)) return;
+        if (!inputElementIsIndirect()) return;
         e.preventDefault();
         var indexes = selStartIndexes;
         var pastedText = e.clipboardData.getData('text/plain');
