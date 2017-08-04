@@ -208,11 +208,7 @@ var createTable = function(initialRows, initialCols, pasteElement) {
             if (!row) continue;
             for (var j = 0; j < row.length; j++) {
                 var td = document.getElementById(encodeCellId(tableId, i0+i, j0+j));
-                if (td.firstChild.nodeName === "INPUT") {
-                    td.firstChild.value = row[j];
-                } else {
-                    td.firstChild.nodeValue = row[j];
-                }
+                td.textContent = row[j];
             }
         }
     };
