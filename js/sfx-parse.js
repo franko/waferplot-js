@@ -46,9 +46,15 @@ var findListSeparator = function(line) {
 var csvReader = function(text) {
     var lines = text.split("\n");
     var i = 0;
-    if (lines.length == 0) {
+    var first_line_count = 0;
+    while (first_line_count < lines.length && /^\s*$/.test(lines[first_line_count])) {
+        first_line_count += 1;
+    }
+    if (first_line_count >= lines.length) {
         throw "file is empty";
     }
+    // Remove the empty lines at the beginning
+    lines.splice(0, first_line_count);
     var sep = findListSeparator(lines[0]);
     var next = function() {
         if (i < lines.length) {
