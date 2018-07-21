@@ -114,7 +114,10 @@ var tps_fit = function(data, param) {
     Vd[N+1] = 0;
     Vd[N+2] = 0;
 
-    var w = Vector.create(numeric.solve(Ld, Vd));
+    var lld = lalolib.array2mat(Ld);
+    var lvd = lalolib.array2vec(Vd);
+    var w = Vector.create(lalolib.solve(lld, lvd));
+
     var fn = tps_interpolation_fn(w, control_points, norm);
     var normal_fn = tps_interpolation_normal_fn(w, control_points, norm);
 
