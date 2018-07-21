@@ -78,8 +78,8 @@ var tps_fit = function(data, param) {
     }
     var control_points = Matrix.create(cpdata);
 
-    var Ld = mat_data(N+3, N+3);
-    var Vd = [];
+    var Ld = new lalolib.Matrix(N+3, N+3);
+    var Vd = new Float64Array(N+3);
     var a = 0;
     for (var i = 0; i < N; i++) {
         for (var j = i+1; j < N; j++) {
@@ -87,7 +87,8 @@ var tps_fit = function(data, param) {
             var xj = control_points.e(j+1, 1), yj = control_points.e(j+1, 2);
             var elen = Math.sqrt((xi - xj)*(xi - xj) + (yi - yj)*(yi - yj));
             var Ueval = tps_radial(elen);
-            Ld[i][j] = Ld[j][i] = Ueval;
+            Ld.set(i, j, Ueval);
+            Ld.set(j, i, Ueval);
             a += elen * 2;
         }
     }
@@ -95,15 +96,15 @@ var tps_fit = function(data, param) {
 
     var regularization = param.regularization;
     for (var i = 0; i < N; i++) {
-        Ld[i][i] = regularization * (a*a);
+        Ld.set(i,i, regularization * (a*a));
 
-        Ld[i][N+0] = 1;
-        Ld[i][N+1] = control_points.e(i+1, 1);
-        Ld[i][N+2] = control_points.e(i+1, 2);
+        Ld.set(i, N+0, 1);
+        Ld.set(i, N+1, control_points.e(i+1, 1));
+        Ld.set(i, N+2, control_points.e(i+1, 2));
 
-        Ld[N+0][i] = 1;
-        Ld[N+1][i] = control_points.e(i+1, 1);
-        Ld[N+2][i] = control_points.e(i+1, 2);
+        Ld.set(N+0, i, 1);
+        Ld.set(N+1, i, control_points.e(i+1, 1));
+        Ld.set(N+2, i, control_points.e(i+1, 2));
     }
 
     for (var i = 0; i < N; i++) {
@@ -113,9 +114,7 @@ var tps_fit = function(data, param) {
     Vd[N+1] = 0;
     Vd[N+2] = 0;
 
-    var lld = lalolib.array2mat(Ld);
-    var lvd = lalolib.array2vec(Vd);
-    var w = Vector.create(lalolib.solve(lld, lvd));
+    var w = Vector.create(lalolib.solve(Ld, Vd));
 
     var fn = tps_interpolation_fn(w, control_points, norm);
     var normal_fn = tps_interpolation_normal_fn(w, control_points, norm);
