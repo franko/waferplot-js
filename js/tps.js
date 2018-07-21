@@ -78,7 +78,7 @@ var tps_fit = function(data, param) {
     }
     var control_points = Matrix.create(cpdata);
 
-    var Ld = mat_data(N+3, N+3), Kd = mat_data(N, N);
+    var Ld = mat_data(N+3, N+3);
     var Vd = [];
     var a = 0;
     for (var i = 0; i < N; i++) {
@@ -88,7 +88,6 @@ var tps_fit = function(data, param) {
             var elen = Math.sqrt((xi - xj)*(xi - xj) + (yi - yj)*(yi - yj));
             var Ueval = tps_radial(elen);
             Ld[i][j] = Ld[j][i] = Ueval;
-            Kd[i][j] = Kd[j][i] = Ueval;
             a += elen * 2;
         }
     }
@@ -96,7 +95,7 @@ var tps_fit = function(data, param) {
 
     var regularization = param.regularization;
     for (var i = 0; i < N; i++) {
-        Ld[i][i] = Kd[i][i] = regularization * (a*a);
+        Ld[i][i] = regularization * (a*a);
 
         Ld[i][N+0] = 1;
         Ld[i][N+1] = control_points.e(i+1, 1);
