@@ -114,7 +114,7 @@ var tps_fit = function(data, param) {
     Vd[N+1] = 0;
     Vd[N+2] = 0;
 
-    var w = Vector.create(lalolib.solve(Ld, Vd));
+    var w = Vector.create(lalolib.solveGaussianElimination(Ld, Vd));
 
     var fn = tps_interpolation_fn(w, control_points, norm);
     var normal_fn = tps_interpolation_normal_fn(w, control_points, norm);
