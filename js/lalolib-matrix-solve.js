@@ -1,16 +1,9 @@
 var lalolib=function(){
-//////////////////////////
-//// Cross-browser compatibility
-///////////////////////////
-
-if( typeof(Math.sign) == "undefined" ) {
-	// for IE, Safari
-	Math.sign = function ( x ) { return ( x>=0 ? (x==0 ? 0 : 1) : -1 ) ;}
-}
 
 function error( msg ) {
 	throw new Error ( msg ) ;	
 }
+
 //////////////////////////
 //// CONSTANTS and general tools
 ///////////////////////////
@@ -21,9 +14,7 @@ const EPS = 2.2205e-16;
 function isZero(x) {
 	return (Math.abs(x) < EPS ) ;
 }
-function isInteger(x) {
-	return (Math.floor(x) == x ) ;
-}
+
 /**
  * @return {string} 
  */
@@ -143,9 +134,6 @@ Matrix.prototype.toArrayOfFloat64Array = function ( ) {
 	return A;
 }
 
-function array2mat( A ) {
-	return mat(A, true);
-}
 function array2vec( a ) {
 	return vectorCopy(a);
 }
@@ -188,25 +176,6 @@ function size( A, sizealongdimension ) {
 		return s[sizealongdimension-1];	
 
 }
-
-// TO BE REMOVED
-function ones(rows, cols) {
-	// Create a matrix or vector full of ONES 
-	if ( arguments.length == 1 || cols == 1 ) {
-		var v = new Float64Array(rows);
-		for (var i = 0; i< rows; i++) 
-			v[i] = 1;
-		return v;
-	} 
-	else {
-		var M = new Matrix(rows, cols); 
-		const mn = rows*cols; 
-		for (var i = 0; i< mn; i++) {
-			M.val[i] = 1;
-		}
-		return M;
-	}
-}
 // Use zeros( m, n) 
 function zeros(rows, cols) {
 	// Create a matrix or vector of ZERO 
@@ -231,56 +200,6 @@ function eye(m,n) {
 	}
 	
 	return I;
-}
-
-// TO BE REMOVED
-function diag( A ) {
-	var i;
-	var typeA = type(A);
-	if (typeA == "vector" ) {
-		var M = zeros(A.length,A.length);
-		var j = 0;
-		const stride = A.length+1;
-		for ( i=0; i < A.length; i++) {
-				M.val[j] = A[i];
-				j += stride;
-		}
-		return M;
-	}
-	else if ( typeA =="matrix") {
-		var n = Math.min(A.m, A.n);
-		var v = new Float64Array(n);
-		var j = 0;
-		const stride2 = A.n+1;
-		for ( i =0; i< n;i++) {
-			v[i] = A.val[j];	
-			j+=stride2;
-		}
-		return v;
-	}
-	else if (typeA == "ComplexVector" ) {
-		var M = new ComplexMatrix(A.length,A.length);
-		var j = 0;
-		const stride = A.length+1;
-		for ( i=0; i < A.length; i++) {
-				M.re[j] = A.re[i];
-				M.im[j] = A.im[i];
-				j += stride;
-		}
-		return M;
-	}
-	else if ( typeA == "ComplexMatrix") {
-		var n = Math.min(A.m, A.n);
-		var v = new ComplexVector(n);
-		var j = 0;
-		const stride2 = A.n+1;
-		for ( i =0; i< n;i++) {
-			v.re[i] = A.re[j];	
-			v.im[i] = A.im[j];
-			j+=stride2;
-		}
-		return v;
-	}
 }
 
 /**
@@ -3066,77 +2985,6 @@ function solveGaussianElimination(Aorig, borig) {
 
 	// Solution: 
 	return b;
-}
-
-// TO BE REMOVED
-function inv( M ) {
-	if ( typeof(M) == "number" )
-		return 1/M;
-
-	// inverse matrix with Gaussian elimination
-		
-	var i;
-	var j;
-	var k;
-	const m = M.length;
-	const n = M.n;
-	if ( m != n)
-		return "undefined";
-		
-	// Make extended linear system:	
-	var A = matrixCopy(M) ;
-	var B = eye(n); 
-		
-	for (k=0; k < m ; k++) {
-		var kn = k*n;
-		
-		// Find imax = argmax_i=k...m |A_i,k|
-		var imax = k;
-		var Aimaxk = Math.abs(A.val[imax*n + k]);
-		for (i=k+1; i<m ; i++) {
-			if ( Math.abs( A.val[i*n + k] ) > Aimaxk ) {
-				imax = i;
-				Aimaxk = Math.abs(A.val[i * n + k]);
-			}
-		}
-		if ( Math.abs( Aimaxk ) < 1e-12 ) {
-			return "singular";
-		} 
-		
-		if ( imax != k ) {
-			// Permute the rows
-			swaprows(A, k, imax);
-			swaprows(B,k, imax);		
-		}		
-		
-		// Normalize row k 
-		var Akk = A.val[kn + k];
-		for ( j=0; j < n; j++) {
-			A.val[kn + j] /= Akk;
-			B.val[kn + j] /= Akk;
-		}
-		
-		if ( Math.abs(Akk) < 1e-8 )
-			console.log("!! Warning in inv(): " + Akk + " " + k + ":" + m );
-			
-		// Substract the kth row from others to get 0s in kth column
-		var Aik ;
-		for ( i=0; i< m; i++) {
-			if ( i != k ) {
-				var ri = i*n;
-				Aik = A.val[ri+k];
-				if ( ! isZero(Aik) ) {
-					for ( j=0; j < n; j++) {
-						A.val[ri + j] -= Aik * A.val[kn+j]; 
-						B.val[ri + j] -= Aik * B.val[kn+j] ;
-					}
-				}
-			}
-		}		
-	}
-
-	// Solution: 
-	return B;
 }
 
 /**
