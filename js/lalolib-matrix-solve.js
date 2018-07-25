@@ -3376,5 +3376,5 @@ function qr( A, compute_Q ) {
 
 	return {"Q" : Q, "R" : transpose(R), "V": V, "beta" : beta, "piv" : piv, "rank" : r+1 };
 }
-return {Matrix: Matrix, solveGaussianElimination: solveGaussianElimination}
+return {Matrix: Matrix, transpose: transpose, mul: mul, solveGaussianElimination: solveGaussianElimination};
 }()
