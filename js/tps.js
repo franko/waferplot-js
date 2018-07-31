@@ -124,6 +124,12 @@ var tps_fit = function(data, param) {
     }
     var w = Vector.create(w_array);
 
+    for (var i = 1; i <= N+3; i++) {
+        if (!isFinite(w.e(i))) {
+            throw "bad points distribution";
+        }
+    }
+
     var fn = tps_interpolation_fn(w, control_points, norm);
     var normal_fn = tps_interpolation_normal_fn(w, control_points, norm);
 
