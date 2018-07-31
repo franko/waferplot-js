@@ -66,6 +66,11 @@ label {
     color: #4183c4;
 }
 
+.error {
+    font-size: 14px;
+    color: #c44141;
+}
+
 div.help {
   float: right;
   text-rendering: optimizeLegibility;

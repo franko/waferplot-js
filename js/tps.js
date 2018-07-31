@@ -69,6 +69,10 @@ var tps_interpolation_normal_fn = function(w, control_points, normalize) {
 var tps_fit = function(data, param) {
     var N = data.rows();
 
+    if (N <= 3) {
+        throw "not enough points";
+    }
+
     var xindex = param.plotting_columns.x, yindex = param.plotting_columns.y;
     var zindex = param.plotting_columns.z;
     var cpdata = [];
@@ -114,7 +118,11 @@ var tps_fit = function(data, param) {
     Vd[N+1] = 0;
     Vd[N+2] = 0;
 
-    var w = Vector.create(lalolib.solveGaussianElimination(Ld, Vd));
+    var w_array = lalolib.solveGaussianElimination(Ld, Vd);
+    if (!w_array) {
+        throw "bad points distribution";
+    }
+    var w = Vector.create(w_array);
 
     var fn = tps_interpolation_fn(w, control_points, norm);
     var normal_fn = tps_interpolation_normal_fn(w, control_points, norm);

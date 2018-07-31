@@ -555,6 +555,18 @@ var onChangeDatasetExample = function(event) {
 	}
 }
 
+MYAPP.clear_error_messages = function() {
+	var div = document.getElementById("error-div");
+    while (div.firstChild) {
+        div.removeChild(div.firstChild);
+    }
+};
+
+MYAPP.report_error = function(action_name, error_message) {
+	var div = document.getElementById("error-div");
+	div.appendChild(document.createTextNode("error reported in " + action_name + ": " + error_message));
+};
+
 document.getElementById("paste-data-bt").addEventListener("click", pasteData);
 document.getElementById("plot_type_select").addEventListener("change", onChangePlotType);
 document.getElementById("example_dataset_select").addEventListener("change", onChangeDatasetExample);
