@@ -1,0 +1,29 @@
+solveGaussianElimination:
+	Matrix
+	Matrix.toArrayFloat64Array
+	solveWithQRcolumnpivoting
+
+solveWithQRcolumnpivoting:
+	qr
+	vectorCopy
+	get, set, range
+	sub, mul
+	zeros
+	backsubstitution
+
+qr:
+	transpose
+	* zeros
+	norm
+	dot
+	house
+	* vectorCopy
+	eye
+	* get, set, range
+
+house:
+	* dot
+	* zeros
+	isZero
+
+	
