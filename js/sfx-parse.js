@@ -120,13 +120,18 @@ FXParser.prototype = {
         return re.test(this.reader.line());
     },
 
-    readTabularFormat: function() {
+    readTabularFormat: function(report_invalid) {
         var headers = this.reader.next();
         console.log(headers);
         var data = [];
-        for (var row = this.next(); row; row = this.next()) {
+        var index = 1;
+        for (var row = this.next(); row; row = this.next(), index++) {
             if (row.length > 0) {
-                data.push(row);
+                if (is_list_of_numbers(row)) {
+                    data.push(row);
+                } else if (report_invalid) {
+                    report_invalid(index, row);
+                }
             }
         }
         var table = DataFrame.create(data, headers);

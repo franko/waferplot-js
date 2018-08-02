@@ -30,7 +30,7 @@ on_parameter_value = function(fx, choice) {
     var dataset = lookup_fx_section(fx, choice);
     var xindex = dataset.colIndexOf("X") > 0 ? dataset.colIndexOf("X") : dataset.colIndexOf("x");
     var yindex = dataset.colIndexOf("Y") > 0 ? dataset.colIndexOf("Y") : dataset.colIndexOf("y");
-    if (xindex <= 0 || yindex <= 0) throw "Data is missing X, Y columns";
+    if (xindex <= 0 || yindex <= 0) throw "data is missing X, Y columns";
     var plotting_columns = {x: xindex, y: yindex, z: dataset.colIndexOf(option.value)};
     if (dataset) {
         if (plotting_columns.z > 0) {
@@ -221,16 +221,30 @@ var populate_meas_selects = function(fx) {
 };
 
 var load_data_text = function(text) {
-    var fx = new FXParser(text);
-    if (fx.matchSfxFormat()) {
-        var time = fx.readDateTime();
-        var meas_info = {tool: "Tool A", time: time};
-        fx.readAll(meas_info);
-    } else {
-        fx.readTabularFormat();
+    MYAPP.clear_error_messages();
+
+    try {
+        var fx = new FXParser(text);
+        if (fx.matchSfxFormat()) {
+            var time = fx.readDateTime();
+            var meas_info = {tool: "Tool A", time: time};
+            fx.readAll(meas_info);
+        } else {
+            var warn_fn = function (index, row) {
+                MYAPP.report_warning("on input data", "excluding invalid data in row " + index + " [" + row.join(",") + "]");
+            };
+            fx.readTabularFormat(warn_fn);
+        }
+    } catch (err) {
+        MYAPP.report_error("importing data", err);
     }
+
     populate_meas_selects(fx);
-    load_data_section(fx, current_choice);
+    try {
+        load_data_section(fx, current_choice);
+    } catch (err) {
+        MYAPP.report_error("creating model", err);
+    }
 };
 
 var onLoadFile = function(evt) {
