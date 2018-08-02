@@ -26,6 +26,7 @@ var container = document.getElementById("three-js");
 
 var renderer_element;
 var data_element;
+var pasteDataOverlayDiv;
 
 var createButton = function(text, onclick) {
 	var bt = document.createElement("button");
@@ -70,7 +71,7 @@ var newPasteDataDiv = function(action) {
 	return div;
 };
 
-var pasteData = function() {
+var newPasteDataOverlayDiv = function() {
 	var div_overlay = document.createElement("div");
 	div_overlay.className = "overlay";
 
@@ -89,7 +90,15 @@ var pasteData = function() {
 
 	var div = newPasteDataDiv({done: doneFunction, cancel: cancelFunction});
 	div_overlay.appendChild(div);
-	document.body.appendChild(div_overlay);
+	return div_overlay;
+}
+
+var pasteData = function() {
+	/* If the paste-data overlay div does not exist create a new one. */
+	if (!pasteDataOverlayDiv) {
+		pasteDataOverlayDiv = newPasteDataOverlayDiv();
+	}
+	document.body.appendChild(pasteDataOverlayDiv);
 };
 
 var enable_output = function(what) {
