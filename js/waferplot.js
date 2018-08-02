@@ -40,11 +40,11 @@ var newClearDiv = function() {
 	return div_clear;
 };
 
-var pasteData = function() {
-	var app_area = document.getElementById("app-area");
-	var div_overlay = document.createElement("div");
-	div_overlay.className = "overlay";
-	div = document.createElement("div");
+/* Create a new div to paste tabular data. The action contain function to be called on
+   done or cancel button. The action functions will be called with the table (spreadsheet)
+   as argument so that they can access to the data if they need to. */
+var newPasteDataDiv = function(action) {
+	var div = document.createElement("div");
 	div.className = "overlay-content";
 
 	var text = document.createElement("p");
@@ -60,19 +60,34 @@ var pasteData = function() {
 	var table = spreadsheet.createTable(12, 4, pasteArea);
 	div.appendChild(table.element);
 
-	var bt_done = createButton("Done", function() {
-		var text = table.getText();
-		document.body.removeChild(div_overlay);
-		MYAPP.load_data_text(text);
-	});
+	var bt_done = createButton("Done", function() { action.done(table); });
 	div.appendChild(bt_done);
 
-	var bt_cancel = createButton("Cancel", function() {
-		document.body.removeChild(div_overlay);
-	});
+	var bt_cancel = createButton("Cancel", function() { action.cancel(table); });
 	div.appendChild(bt_cancel);
 	div.appendChild(newClearDiv());
 
+	return div;
+};
+
+var pasteData = function() {
+	var div_overlay = document.createElement("div");
+	div_overlay.className = "overlay";
+
+	/* Retrieve the data from the spreadsheet-like table and remove the overlay_div and
+	   load data. Will be called when user click the "done" button. */
+	var doneFunction = function(table) {
+		var text = table.getText();
+		document.body.removeChild(div_overlay);
+		MYAPP.load_data_text(text);
+	};
+
+	/* Called when user clicks the "cancel" button. */
+	var cancelFunction = function(table) {
+		document.body.removeChild(div_overlay);
+	};
+
+	var div = newPasteDataDiv({done: doneFunction, cancel: cancelFunction});
 	div_overlay.appendChild(div);
 	document.body.appendChild(div_overlay);
 };
