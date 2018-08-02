@@ -579,16 +579,25 @@ var onChangeDatasetExample = function(event) {
 	}
 }
 
-MYAPP.clear_error_messages = function() {
-	var div = document.getElementById("error-div");
+var clear_div = function(div) {
     while (div.firstChild) {
         div.removeChild(div.firstChild);
     }
 };
 
+MYAPP.clear_error_messages = function() {
+	clear_div(document.getElementById("error-div"));
+	clear_div(document.getElementById("warning-div"));
+};
+
 MYAPP.report_error = function(action_name, error_message) {
 	var div = document.getElementById("error-div");
 	div.appendChild(document.createTextNode("error reported in " + action_name + ": " + error_message));
+};
+
+MYAPP.report_warning = function(action_name, warning_message) {
+	var div = document.getElementById("warning-div");
+	div.appendChild(document.createTextNode("warning " + action_name + ": " + warning_message));
 };
 
 document.getElementById("paste-data-bt").addEventListener("click", pasteData);

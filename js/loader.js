@@ -230,7 +230,10 @@ var load_data_text = function(text) {
             var meas_info = {tool: "Tool A", time: time};
             fx.readAll(meas_info);
         } else {
-            fx.readTabularFormat();
+            var warn_fn = function (index, row) {
+                MYAPP.report_warning("on input data", "excluding invalid data in row " + index + " [" + row.join(",") + "]");
+            };
+            fx.readTabularFormat(warn_fn);
         }
     } catch (err) {
         MYAPP.report_error("importing data", err);

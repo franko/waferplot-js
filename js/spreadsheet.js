@@ -40,6 +40,20 @@ var inputElementOnMouseDown = function(evt) {
     evt.target.className = "";
 };
 
+/* Remove empy cells at the end of a line (array of strings). */
+var lineCleanupEmptyCells = function(line) {
+    var n = line.length;
+    for (var i = n - 1; i >= 0; i--) {
+        var value = line[i];
+        if (value.match(/^\s*$/)) {
+            line.splice(i, 1);
+        } else {
+            /* If found a non-empty cell stops. */
+            break;
+        }
+    }
+}
+
 var createTable = function(initialRows, initialCols, textInputElement) {
     var tableElement, tableRows = 0, tableCols = 0;
     var selecting = false, selStartIndexes, selEndIndexes;
@@ -284,11 +298,11 @@ var createTable = function(initialRows, initialCols, textInputElement) {
             var row = tableElement.rows[i];
             var line = [];
             for (var j = 0; j < row.cells.length; j++) {
-                var s = row.cells[j].firstChild.nodeValue;
-                if (!s.match(/^\s*$/)) {
-                    line.push(s);
-                }
+                var cell = row.cells[j].firstChild;
+                var cell_text = cell ? cell.nodeValue : "";
+                line.push(cell_text);
             }
+            lineCleanupEmptyCells(line);
             if (line.length > 0) {
                 lines.push(line.join());
             }

@@ -71,6 +71,11 @@ label {
     color: #c44141;
 }
 
+.warning {
+    font-size: 14px;
+    color: #4183c4;
+}
+
 div.help {
   float: right;
   text-rendering: optimizeLegibility;
