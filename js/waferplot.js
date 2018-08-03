@@ -587,7 +587,7 @@ var clear_div = function(div) {
 
 MYAPP.clear_error_messages = function() {
 	clear_div(document.getElementById("error-div"));
-	clear_div(document.getElementById("warning-div"));
+	clear_div(document.getElementById("warning-ul"));
 };
 
 MYAPP.report_error = function(action_name, error_message) {
@@ -596,8 +596,10 @@ MYAPP.report_error = function(action_name, error_message) {
 };
 
 MYAPP.report_warning = function(action_name, warning_message) {
-	var div = document.getElementById("warning-div");
-	div.appendChild(document.createTextNode("warning " + action_name + ": " + warning_message));
+	var ul = document.getElementById("warning-ul");
+	var new_li = document.createElement("li");
+	new_li.appendChild(document.createTextNode("warning " + action_name + ": " + warning_message));
+	ul.appendChild(new_li);
 };
 
 document.getElementById("paste-data-bt").addEventListener("click", pasteData);
