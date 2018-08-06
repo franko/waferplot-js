@@ -105,16 +105,31 @@ var dataset_find_region = function(data, columns) {
         if (r > radius) radius = r;
     }
     var inv_radius = 1 / round_up(radius, units.div);
-    return function(x, y) {
-        return [(x - center_x) * inv_radius, (y - center_y) * inv_radius];
-    }
+    return {x: center_x, y: center_y, inv_radius: inv_radius};
+};
+
+var report_error_and_restore = function(context, error_message) {
+    MYAPP.report_error(context, error_message);
+    MYAPP.plot_area_restore();
 };
 
 var load_dataset = function(data, plotting_columns) {
-    var xy_norm = dataset_find_region(data, plotting_columns);
-    var tps_param = {regularization: 0.001, plotting_columns: plotting_columns, normalize: xy_norm};
-    var fit = MYAPP.tps_fit(data, tps_param);
-    MYAPP.load_wafer_function(fit.eval, fit.eval_normal, data, plotting_columns, xy_norm);
+    var disk = dataset_find_region(data, plotting_columns);
+    var norm = function(x, y) {
+        return [(x - disk.x) * disk.inv_radius, (y - disk.y) * disk.inv_radius];
+    };
+    var tps_param = {regularization: 0.001, plotting_columns: plotting_columns, disk: disk};
+    var tps_worker = new Worker('js/tps-worker.js');
+    tps_worker.onmessage = function(e) {
+        var eval_fn = tps_interpolation_fn(e.data.coefficients, e.data.control_points, norm);
+        var eval_normal_fn = tps_interpolation_normal_fn(e.data.coefficients, e.data.control_points, norm);
+        MYAPP.load_wafer_function(eval_fn, eval_normal_fn, data, plotting_columns, norm);
+        MYAPP.plot_area_restore();
+    }
+    tps_worker.onerror = function(e) {
+        report_error_and_restore("creating model", e.message);
+    };
+    tps_worker.postMessage({data: data.elements, parameters: tps_param});
 };
 
 var load_data_section = function(fx, choice) {
@@ -236,18 +251,16 @@ var load_data_text = function(text) {
             };
             fx.readTabularFormat(warn_fn);
         }
+        populate_meas_selects(fx);
     } catch (err) {
-        MYAPP.report_error("importing data", err);
-        MYAPP.plot_area_restore();
+        report_error_and_restore("importing data", err);
     }
 
-    populate_meas_selects(fx);
     try {
         load_data_section(fx, current_choice);
     } catch (err) {
-        MYAPP.report_error("creating model", err);
+        report_error_and_restore("creating model", err);
     }
-    MYAPP.plot_area_restore();
 };
 
 var onLoadFile = function(evt) {
@@ -267,3 +280,49 @@ var on_file_selection = function(evt) {
 MYAPP.load_data_text = load_data_text;
 
 document.getElementById('file-select').addEventListener('change', on_file_selection, false);
+
+var tps_radial = function(r) {
+    return (r <= 0 ? 0 : r*r*Math.log(r));
+};
+
+var tps_radial_der = function(r) {
+    return r*(1 + 2 * Math.log(r));
+};
+
+var tps_interpolation_fn = function(w, control_points, normalize) {
+    return function(xr, yr) {
+        var coord = normalize(xr, yr);
+        var x = coord[0], y = coord[1];
+        var N = control_points.length;
+        var h = w[N] + x * w[N+1] + y * w[N+2];
+        for (var i = 0; i < N; i++) {
+            var xi = control_points[i][0], yi = control_points[i][1];
+            var elen = Math.sqrt((xi - x)*(xi - x) + (yi - y)*(yi - y));
+            h += w[i] * tps_radial(elen);
+        }
+        return h;
+    };
+};
+
+var tps_interpolation_normal_fn = function(w, control_points, normalize) {
+    return function(xr, yr) {
+        var coord = normalize(xr, yr);
+        var x = coord[0], y = coord[1];
+        var N = control_points.length;
+        var dzdx = w[N+1], dzdy = w[N+2];
+        for (var i = 0; i < N; i++) {
+            var xi = control_points[i][0], yi = control_points[i][1];
+            var r = Math.sqrt((xi - x)*(xi - x) + (yi - y)*(yi - y));
+            var dudr = tps_radial_der(r);
+            if (r > 0) {
+                dzdx += w[i] * dudr * (x - xi) / r;
+                dzdy += w[i] * dudr * (y - yi) / r;
+            }
+        }
+        var dcoord1 = normalize(1, 1), dcoord0 = normalize(0, 0);
+        dzdx *= dcoord1[0] - dcoord0[0];
+        dzdy *= dcoord1[1] - dcoord0[1];
+        var nf = Math.sqrt(1 + dzdx*dzdx + dzdy*dzdy);
+        return new THREE.Vector3(-dzdx / nf, -dzdy / nf, 1 / nf);
+    };
+};
