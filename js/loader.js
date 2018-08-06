@@ -221,6 +221,7 @@ var populate_meas_selects = function(fx) {
 };
 
 var load_data_text = function(text) {
+    MYAPP.plot_area_set_loader();
     MYAPP.clear_error_messages();
 
     try {
@@ -237,6 +238,7 @@ var load_data_text = function(text) {
         }
     } catch (err) {
         MYAPP.report_error("importing data", err);
+        MYAPP.plot_area_restore();
     }
 
     populate_meas_selects(fx);
@@ -245,6 +247,7 @@ var load_data_text = function(text) {
     } catch (err) {
         MYAPP.report_error("creating model", err);
     }
+    MYAPP.plot_area_restore();
 };
 
 var onLoadFile = function(evt) {

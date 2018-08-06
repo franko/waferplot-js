@@ -112,6 +112,23 @@ var enable_output = function(what) {
 	}
 }
 
+var plot_area_set_loader = function() {
+	if (container.firstChild) {
+		container.removeChild(container.firstChild);
+	}
+	var loader = document.createElement("div");
+	loader.classList.add('loader');
+	container.appendChild(loader);
+};
+
+var plot_area_restore = function() {
+	var selected_tab_name = find_selected_tab();
+	enable_output(selected_tab_name);
+};
+
+MYAPP.plot_area_restore = plot_area_restore;
+MYAPP.plot_area_set_loader = plot_area_set_loader;
+
 var foreach_nav_a = function(action) {
 	var ul = document.getElementById("tab-ul");
 	var lis = ul.childNodes;
@@ -122,7 +139,20 @@ var foreach_nav_a = function(action) {
 			action(a);
 		}
 	}
-}
+};
+
+var find_selected_tab = function() {
+	var ul = document.getElementById("tab-ul");
+	var lis = ul.childNodes;
+	for (var k = 0; k < lis.length; k++) {
+		var li = lis[k];
+		var a = li.firstChild;
+		if (a && a.className === "selected") {
+			return a.text;
+		}
+	}
+};
+
 
 foreach_nav_a(function(a) {
 	a.addEventListener('click', function(event) {
@@ -190,7 +220,7 @@ renderer_element = renderer.domElement;
 data_element = document.createElement("p");
 data_element.innerHTML = "<h3>No data currently loaded.</h3>";
 
-container.appendChild( renderer.domElement );
+container.appendChild(renderer_element);
 
 var controls = new THREE.OrbitControls( camera, renderer.domElement );
 
