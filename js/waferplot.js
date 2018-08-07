@@ -112,20 +112,20 @@ var enable_output = function(what) {
 	}
 }
 
-var plot_area_set_loader = function() {
+var loader_start = function() {
 	var loader_div = document.getElementById('loader-div');
 	var loader = document.createElement("div");
 	loader.className = 'loader';
 	loader_div.appendChild(loader);
 };
 
-var plot_area_restore = function() {
+var loader_stop = function() {
 	var loader_div = document.getElementById('loader-div');
 	loader_div.removeChild(loader_div.firstChild);
 };
 
-MYAPP.plot_area_restore = plot_area_restore;
-MYAPP.plot_area_set_loader = plot_area_set_loader;
+MYAPP.loader_stop = loader_stop;
+MYAPP.loader_start = loader_start;
 
 var foreach_nav_a = function(action) {
 	var ul = document.getElementById("tab-ul");

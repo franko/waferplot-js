@@ -108,9 +108,9 @@ var dataset_find_region = function(data, columns) {
     return {x: center_x, y: center_y, inv_radius: inv_radius};
 };
 
-var report_error_and_restore = function(context, error_message) {
+var report_error_and_stop = function(context, error_message) {
     MYAPP.report_error(context, error_message);
-    MYAPP.plot_area_restore();
+    MYAPP.loader_stop();
 };
 
 var load_dataset = function(data, plotting_columns) {
@@ -124,10 +124,10 @@ var load_dataset = function(data, plotting_columns) {
         var eval_fn = tps_interpolation_fn(e.data.coefficients, e.data.control_points, norm);
         var eval_normal_fn = tps_interpolation_normal_fn(e.data.coefficients, e.data.control_points, norm);
         MYAPP.load_wafer_function(eval_fn, eval_normal_fn, data, plotting_columns, norm);
-        MYAPP.plot_area_restore();
+        MYAPP.loader_stop();
     }
     tps_worker.onerror = function(e) {
-        report_error_and_restore("creating model", e.message);
+        report_error_and_stop("creating model", e.message);
     };
     tps_worker.postMessage({data: data.elements, parameters: tps_param});
 };
@@ -236,7 +236,7 @@ var populate_meas_selects = function(fx) {
 };
 
 var load_data_text = function(text) {
-    MYAPP.plot_area_set_loader();
+    MYAPP.loader_start();
     MYAPP.clear_error_messages();
 
     try {
@@ -253,13 +253,13 @@ var load_data_text = function(text) {
         }
         populate_meas_selects(fx);
     } catch (err) {
-        report_error_and_restore("importing data", err);
+        report_error_and_stop("importing data", err);
     }
 
     try {
         load_data_section(fx, current_choice);
     } catch (err) {
-        report_error_and_restore("creating model", err);
+        report_error_and_stop("creating model", err);
     }
 };
 
