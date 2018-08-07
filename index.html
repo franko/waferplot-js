@@ -28,8 +28,14 @@
         <div id="select_meas_div"></div>
         <div class="error" id="error-div"></div>
         <div class="warning"><ul id="warning-ul"></ul></div>
-        <ul id="tab-ul" class="show-nav">
-        <li><a href="#" class="selected">Plot</a></li><li><a href="#">Data</a></li></ul>
+        <div>
+            <ul id="tab-ul" class="show-nav">
+                <li><a href="#" class="selected">Plot</a></li>
+                <li><a href="#">Data</a></li>
+            </ul>
+            <div id="loader-div"></div>
+            <div class="clear"></div>
+        </div>
         <label>show points<input type="checkbox" id="show-points-check" class="data" checked></label>
         <div id="three-js"></div>
         <script src="js/clipboard.js"></script>

@@ -113,17 +113,15 @@ var enable_output = function(what) {
 }
 
 var plot_area_set_loader = function() {
-	if (container.firstChild) {
-		container.removeChild(container.firstChild);
-	}
+	var loader_div = document.getElementById('loader-div');
 	var loader = document.createElement("div");
-	loader.classList.add('loader');
-	container.appendChild(loader);
+	loader.className = 'loader';
+	loader_div.appendChild(loader);
 };
 
 var plot_area_restore = function() {
-	var selected_tab_name = find_selected_tab();
-	enable_output(selected_tab_name);
+	var loader_div = document.getElementById('loader-div');
+	loader_div.removeChild(loader_div.firstChild);
 };
 
 MYAPP.plot_area_restore = plot_area_restore;
