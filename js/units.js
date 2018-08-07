@@ -7,7 +7,9 @@
 var deltas = [1, 2, 2.5, 3, 5, 6, 8, 9, 10];
 var deltas_offset = [0, 0, 1, 0, 0, 0, 0, 0, -1];
 
-var floor_log = function(x) { return Math.floor(Math.log10(Math.abs(x))); };
+var log10 = function(x) { return Math.log(x) / Math.log(10); };
+
+var floor_log = function(x) { return Math.floor(log10(Math.abs(x))); };
 
 var find_units = function(xmin, xmax, ndiv) {
 	var xdelta = Math.abs(xmax - xmin);

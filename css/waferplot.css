@@ -33,9 +33,12 @@ table.data td {
 }
 
 ul.show-nav {
+  display: inline-block;
+  float: left;
   padding: 0;
   margin: 20px 10px;
 }
+
 .show-nav li {
   display: inline-block;
   padding: 0;
@@ -43,11 +46,18 @@ ul.show-nav {
   list-style-type: none;
 }
 
+#loader-div {
+  display: inline-block;
+  float: right;
+  margin: 10px 10px;
+}
+
 .show-nav li a {
   padding: 4px 12px 4px 10px;
   font-size: 16px;
   font-weight: bold;
 }
+
 .show-nav li a.selected {
   padding: 4px 12px 4px 10px;
   color: #fff;
@@ -108,4 +118,19 @@ div.help {
 
 .clear {
   clear: both;
+}
+
+/* Create an animated loader. Based on https://www.w3schools.com/howto/howto_css_loader.asp . */
+.loader {
+    border: 4px solid #f3f3f3; /* Light grey */
+    border-top: 4px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 14px;
+    height: 14px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
