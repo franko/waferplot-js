@@ -25,6 +25,8 @@ var lookup_fx_section = function(fx, choice) {
 }
 
 on_parameter_value = function(fx, choice) {
+    MYAPP.loader_start();
+
     var select = document.getElementById("param_select");
     var option = select.options[select.selectedIndex];
     var dataset = lookup_fx_section(fx, choice);
@@ -236,7 +238,6 @@ var populate_meas_selects = function(fx) {
 };
 
 var load_data_text = function(text) {
-    MYAPP.loader_start();
     MYAPP.clear_error_messages();
 
     try {
