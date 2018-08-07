@@ -6,9 +6,9 @@
         <meta name="Copyright" content="Copyright (C) 2015, Francesco Abbate">
         <meta name="Language" content="en">
         <meta name="description" content="An HTML application to display 3D plots and contour plots for wafer data">
+        <link rel="stylesheet" href="css/waferplot.css">
+        <link rel="stylesheet" href="css/spreadsheet.css">
     </head>
-    <link rel="stylesheet" href="css/waferplot.css">
-    <link rel="stylesheet" href="css/spreadsheet.css">
     <body>
         <div id="app-area">
         <input type="file" id="file-select" />
@@ -58,14 +58,14 @@
             <p>The data can contains one or more measured parameters as long as each parameter is identified by a different name.
             Once the data is loaded the application will let the user choose the parameter to be plotted.</p>
 
-            <p>The CSV file with the data should be in a simple format with the headers in the first line and the measurements in the following lines like in the example below:</br>
+            <p>The CSV file with the data should be in a simple format with the headers in the first line and the measurements in the following lines like in the example below:
+            </p>
 
             <table class="data"><tr><td>thickness</td><td>RI</td><td>X</td><td>Y</td></tr>
                 <tr><td>201.5</td><td>1.457</td><td>0</td><td>0</td></tr>
                 <tr><td>202.3</td><td>1.459</td><td>11.5</td><td>24.5</td></tr>
                 <tr><td>201.1</td><td>1.458</td><td>102.5</td><td>-24.5</td></tr>
             </table>
-            </p>
 
             <p>In addition the application will accept data coming from KLA-Tencor semiconductor ellipsometers and reflectometers.</p>
         </div>
