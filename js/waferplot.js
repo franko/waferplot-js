@@ -101,6 +101,33 @@ var pasteData = function() {
 	document.body.appendChild(pasteDataOverlayDiv);
 };
 
+var newOptionsOverlayDiv = function() {
+	var div_overlay = document.createElement("div");
+	div_overlay.className = "overlay";
+
+	var div = document.createElement("div");
+	div.className = "overlay-content";
+
+	var div_options = document.createElement("div");
+	div_options.id = "options-div"
+	div.appendChild(div_options);
+
+	// <input type="radio" name="z-scale" value="auto" checked onclick="radio_on_click"><label>Auto</label>
+	// <input type="radio" name="z-scale" value="manual" onclick="radio_on_click"><label>Manual</label>
+
+	var bt_done = createButton("Done", function() { action.done(table); });
+	div.appendChild(bt_done);
+
+	var bt_cancel = createButton("Cancel", function() { action.cancel(table); });
+	div.appendChild(bt_cancel);
+	div.appendChild(newClearDiv());
+
+	div_overlay.appendChild(div);
+	return div_overlay;
+}
+
+MYAPP.newOptionsOverlayDiv = newOptionsOverlayDiv;
+
 var enable_output = function(what) {
 	if (container.firstChild) {
 		container.removeChild(container.firstChild);
@@ -637,6 +664,10 @@ document.getElementById("show-points-check").addEventListener("change", function
 	refresh_plot_options(MYAPP.plot);
 	setup_plot_scene(MYAPP.plot);
 	render();
+});
+document.getElementById("options-bt").addEventListener("click", function(event) {
+	var div_overlay = newOptionsOverlayDiv();
+	document.body.appendChild(div_overlay);
 });
 
 render();
