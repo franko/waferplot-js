@@ -3,6 +3,8 @@
 ** Copyright (C) 2015 Francesco Abbate. See Copyright Notice in waferplot.js
 */
 
+import tps_fit from './tps.js';
+
 MYAPP = {};
 
 var current_choice;
@@ -113,7 +115,7 @@ var dataset_find_region = function(data, columns) {
 var load_dataset = function(data, plotting_columns) {
     var xy_norm = dataset_find_region(data, plotting_columns);
     var tps_param = {regularization: 0.001, plotting_columns: plotting_columns, normalize: xy_norm};
-    var fit = MYAPP.tps_fit(data, tps_param);
+    var fit = tps_fit(data, tps_param);
     MYAPP.load_wafer_function(fit.eval, fit.eval_normal, data, plotting_columns, xy_norm);
 };
 

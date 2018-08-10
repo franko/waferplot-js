@@ -7,6 +7,8 @@
 ** from: http://elonen.iki.fi/code/tpsdemo/index.html.
 */
 
+import {solveGaussianElimination} from './lalolib-matrix-solve.js';
+
 var tps_radial = function(r) {
     return (r <= 0 ? 0 : r*r*Math.log(r));
 };
@@ -66,7 +68,7 @@ var tps_interpolation_normal_fn = function(w, control_points, normalize) {
     };
 };
 
-var tps_fit = function(data, param) {
+export default function tps_fit(data, param) {
     var N = data.rows();
 
     if (N <= 3) {
@@ -118,7 +120,7 @@ var tps_fit = function(data, param) {
     Vd[N+1] = 0;
     Vd[N+2] = 0;
 
-    var w_array = lalolib.solveGaussianElimination(Ld, Vd);
+    var w_array = solveGaussianElimination(Ld, Vd);
     if (!w_array) {
         throw "bad points distribution";
     }
@@ -145,4 +147,3 @@ var tps_fit = function(data, param) {
     return {eval: fn, eval_normal: normal_fn};
 };
 
-MYAPP.tps_fit = tps_fit;

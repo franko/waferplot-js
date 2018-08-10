@@ -1,5 +1,3 @@
-var lalolib=function(){
-
 function error( msg ) {
 	throw new Error ( msg ) ;	
 }
@@ -9,7 +7,7 @@ function error( msg ) {
 ///////////////////////////
 var LALOLIB_ERROR = ""; 
 
-const EPS = 2.2205e-16;
+var EPS = 2.2205e-16;
 
 function isZero(x) {
 	return (Math.abs(x) < EPS ) ;
@@ -74,7 +72,7 @@ function isScalar( x ) {
  * @constructor
  * @struct
  */
-function Matrix(m,n, values) {
+export function Matrix(m,n, values) {
 	
 	/** @const */ this.length = m;
 	/** @const */ this.m = m;
@@ -194,7 +192,7 @@ function eye(m,n) {
 		return 1;
 		
 	var I = zeros(m,n);
-	const e = (m<n)?m:n;
+	var e = (m<n)?m:n;
 	for ( var i = 0; i< e; i ++) {
 		I.val[i*(n+1)] = 1;
 	}
@@ -472,7 +470,7 @@ function getCols(A, colsrange) {
  * @return {Float64Array} 
  */
 function getSubVector(a, rowsrange) {
-	const n = rowsrange.length;
+	var n = rowsrange.length;
 	var res= new Float64Array( n );
 	for (var i = 0; i< n; i++) {
 		res[i] = a[rowsrange[i]];
@@ -486,7 +484,7 @@ function getSubVector(a, rowsrange) {
  * @return {Array} 
  */
 function getSubArray(a, rowsrange) {
-	const n = rowsrange.length;
+	var n = rowsrange.length;
 	var res= new Array( n );
 	for (var i = 0; i< n; i++) {
 		res[i] = a[rowsrange[i]];
@@ -722,7 +720,7 @@ function dense ( A ) {
 
 // Support
 function supp( x ) {
-	const tx = type (x);
+	var tx = type (x);
 	if ( tx == "vector" ) {
 		var indexes = [];
 		var i;
@@ -809,7 +807,7 @@ function swapcols ( A , j, k ) {
 /// Operators
 ///////////////////////////////
 
-function mul(a,b) {
+export function mul(a,b) {
 	var sa = size(a);
 	var sb = size(b); 
 	if ( !isScalar(a) && sa[0] == 1 && sa[1] == 1 ) 
@@ -1271,7 +1269,7 @@ function mul(a,b) {
  */
 function mulScalarVector( scalar, vec ) {
 	var i;
-	const n = vec.length;
+	var n = vec.length;
 	var res = new Float64Array(vec);
 	for ( i=0; i < n; i++)
 		res[i] *= scalar ;
@@ -1294,7 +1292,7 @@ function mulScalarMatrix( scalar, A ) {
  * @return {number} 
  */
 function dot(a, b) {
-	const n = a.length;
+	var n = a.length;
 	var i;
 	var res = 0;
 	for ( i=0; i< n; i++) 
@@ -1308,7 +1306,7 @@ function dot(a, b) {
  * @return {Float64Array} 
  */
 function mulMatrixVector( A, b ) {
-	const m = A.length;
+	var m = A.length;
 	var c = new Float64Array(m); 	
 	var r = 0;
 	for (var i=0; i < m; i++) {
@@ -1324,8 +1322,8 @@ function mulMatrixVector( A, b ) {
  * @return {Float64Array} 
  */
 function mulMatrixTransVector( A, b ) {
-	const m = A.length;
-	const n = A.n;
+	var m = A.length;
+	var n = A.n;
 	var c = new Float64Array(n); 	
 	var rj = 0;
 	for (var j=0; j < m; j++) {
@@ -1343,9 +1341,9 @@ function mulMatrixTransVector( A, b ) {
  * @return {Matrix} 
  */
 function mulMatrixMatrix(A, B) {
-	const m = A.length;
-	const n = B.n;
-	const n2 = B.length;
+	var m = A.length;
+	var n = B.n;
+	var n2 = B.length;
 	
 	var Av = A.val; 
 	var Bv = B.val;
@@ -1375,7 +1373,7 @@ function mulMatrixMatrix(A, B) {
  */
 function entrywisemulVector( a, b) {
 	var i;
-	const n = a.length;
+	var n = a.length;
 	var res = new Float64Array(n);
 	for ( i=0; i < n; i++)
 		res[i] = a[i] * b[i];
@@ -1669,7 +1667,7 @@ function entrywisemul(a,b) {
  * @param {Float64Array}
  */
 function saxpy ( a, x, y) {
-	const n = y.length;
+	var n = y.length;
 	for ( var i=0; i < n; i++) 
 		y[i] += a*x[i];
 }
@@ -1679,8 +1677,8 @@ function saxpy ( a, x, y) {
  * @param {Float64Array}
  */
 function gaxpy ( A, x, y) {
-	const m = A.m;
-	const n = A.n;
+	var m = A.m;
+	var n = A.n;
 	var r = 0;
 	for ( var i=0; i < m; i++) {
 		y[i] += dot(A.val.subarray(r, r + n),x);
@@ -1695,7 +1693,7 @@ function gaxpy ( A, x, y) {
  */
 function divVectorScalar( a, b) {
 	var i;
-	const n = a.length;
+	var n = a.length;
 	var res = new Float64Array(a);
 	for ( i=0; i < n; i++)
 		res[i] /= b;
@@ -1708,7 +1706,7 @@ function divVectorScalar( a, b) {
  */
 function divScalarVector ( a, b) {
 	var i;
-	const n = b.length;
+	var n = b.length;
 	var res = new Float64Array(n);
 	for ( i=0; i < n; i++)
 		res[i] = a / b[i];
@@ -1721,7 +1719,7 @@ function divScalarVector ( a, b) {
  */
 function divVectors( a, b) {
 	var i;
-	const n = a.length;
+	var n = a.length;
 	var res = new Float64Array(a);
 	for ( i=0; i < n; i++)
 		res[i] /= b[i];
@@ -1875,8 +1873,8 @@ function outerprodVectors(a, b, scalar) {
 	var i;
 	var j;
 	var ui;
-	const m = a.length;
-	const n = b.length;
+	var m = a.length;
+	var n = b.length;
 	var res = new Matrix(m,n);
 	if( arguments.length == 3 ) {
 		for (i=0; i< m; i++) 
@@ -1943,7 +1941,7 @@ function outerprod( u , v, scalar ) {
  * @return {Float64Array} 
  */
 function addScalarVector ( scalar, vec ) {
-	const n = vec.length;
+	var n = vec.length;
 	var res = new Float64Array(vec);
 	for (var i = 0 ; i< n; i++) 
 		res[i] += scalar ;
@@ -1964,7 +1962,7 @@ function addScalarMatrix(a, B ) {
  * @return {Float64Array} 
  */
 function addVectors(a,b) {
-	const n = a.length;
+	var n = a.length;
 	var c = new Float64Array(a);
 	for (var i=0; i < n; i++)
 		c[i] += b[i];
@@ -1980,8 +1978,8 @@ function addMatrices(A,B) {
 }
 function add(a,b) {
 	
-	const ta = type(a);
-	const tb = type(b);
+	var ta = type(a);
+	var tb = type(b);
 	if ( ta == "number" && tb == "number" || ta == "string" || tb == "string")
 		return a + b;
 	else if ( ta == "number") {
@@ -2232,7 +2230,7 @@ function add(a,b) {
  * @return {Float64Array} 
  */
 function subScalarVector ( scalar, vec ) {
-	const n = vec.length;
+	var n = vec.length;
 	var res = new Float64Array(n);
 	for (var i = 0 ; i< n; i++) 
 		res[i] = scalar - vec[i];		
@@ -2245,7 +2243,7 @@ function subScalarVector ( scalar, vec ) {
  * @return {Float64Array} 
  */
 function subVectorScalar ( vec, scalar ) {
-	const n = vec.length;
+	var n = vec.length;
 	var res = new Float64Array(vec);
 	for (var i = 0 ; i< n; i++) 
 		res[i] -= scalar;
@@ -2274,7 +2272,7 @@ function subMatrixScalar(B, a ) {
  * @return {Float64Array} 
  */
 function subVectors(a,b) {
-	const n = a.length;
+	var n = a.length;
 	var c = new Float64Array(a);
 	for (var i=0; i < n; i++)
 		c[i] -= b[i];
@@ -2290,8 +2288,8 @@ function subMatrices(A,B) {
 }
 function sub(a,b) {
 	
-	const ta = type(a);
-	const tb = type(b);
+	var ta = type(a);
+	var tb = type(b);
 	if ( ta == "number" && tb == "number" )
 		return a - b;
 	else if ( ta == "number") {
@@ -2444,8 +2442,8 @@ function sub(a,b) {
 
 function pow(a,b) {
 	var i;
-	const ta = type(a);
-	const tb = type(b);
+	var ta = type(a);
+	var tb = type(b);
 	
 	if ( ta == "number" && tb == "number" )
 		return Math.pow(a, b);
@@ -2558,8 +2556,8 @@ function minusMatrix( x ) {
 function transposeMatrix ( A ) {
 	var i;
 	var j;
-	const m = A.m;
-	const n = A.n;
+	var m = A.m;
+	var n = A.n;
 	if ( m > 1 ) {
 		var res = zeros( n,m);
 		var Aj = 0;
@@ -2584,7 +2582,7 @@ function transposeMatrix ( A ) {
 function transposeVector ( a ) {
 	return new Matrix(1,a.length, a);
 }
-function transpose( A ) {	
+export function transpose( A ) {	
 	var i;
 	var j;
 	switch( type( A ) ) {
@@ -2636,8 +2634,8 @@ function trace ( A ) {
  * @return {Matrix}
  */
 function xtx( X ) {
-	const N = X.m;
-	const d = X.n; 
+	var N = X.m;
+	var d = X.n; 
 
 	var C = new Matrix(d,d); 
 	for (var i=0; i < N; i++) {
@@ -2686,7 +2684,7 @@ function norm( A , sumalongdimension ) {
 		}
 		else if ( sumalongdimension == 1 ) {
 			// norm of columns, result is row vector
-			const n = A.n;
+			var n = A.n;
 			var res = zeros(1, n);			
 			var r = 0;
 			for (i=0; i< A.m; i++) {				
@@ -2720,7 +2718,7 @@ function norm( A , sumalongdimension ) {
 		}
 		else if ( sumalongdimension == 1 && !A.rowmajor ) {
 			// norm of columns, result is row vector
-			const nn = A.n;
+			var nn = A.n;
 			var res = zeros(1, nn);
 			for(j=0; j<nn; j++) {
 				var s = A.cols[j];
@@ -2792,7 +2790,7 @@ function solve( A, b ) {
 function backsubstitution ( U, b ) {
 	// backsubstitution to solve a linear system U x = b with upper triangular U
 
-	const n = b.length;
+	var n = b.length;
 	var j = n-1;
 	var x = zeros(n);
 	
@@ -2819,7 +2817,7 @@ function backsubstitution ( U, b ) {
 function forwardsubstitution ( L, b ) {
 	// forward substitution to solve a linear system L x = b with lower triangular L
 
-	const n = b.length;
+	var n = b.length;
 	var j;
 	var x = zeros(n);
 		
@@ -2910,7 +2908,7 @@ function solveWithQRcolumnpivoting ( A, b ) {
 	
 }
 
-function solveGaussianElimination(Aorig, borig) {
+export function solveGaussianElimination(Aorig, borig) {
 
 	// Solve square linear system Ax = b with Gaussian elimination
 	
@@ -2921,8 +2919,8 @@ function solveGaussianElimination(Aorig, borig) {
 	var A = matrixCopy( Aorig ).toArrayOfFloat64Array(); // useful to quickly switch rows
 	var b = vectorCopy( borig ); 
 		
-	const m = Aorig.m;
-	const n = Aorig.n;
+	var m = Aorig.m;
+	var n = Aorig.n;
 	if ( m != n)
 		return undefined;
 	
@@ -2995,7 +2993,7 @@ function house ( x ) {
 	// Compute Houselholder vector v such that 
 	// P = (I - beta v v') is orthogonal and Px = ||x|| e_1
 
-	const n = x.length; 
+	var n = x.length; 
 	var i;
 	var mu;
 	var beta;
@@ -3052,8 +3050,8 @@ function qr( A, compute_Q ) {
 	
 	
 	*/
-	const m = A.m;
-	const n = A.n;
+	var m = A.m;
+	var n = A.n;
 	
 	/*
 	if ( n > m)
@@ -3079,7 +3077,7 @@ function qr( A, compute_Q ) {
 	var normR22 = normA;
 	var Rij;
 	
-	const TOL = 1e-5;
+	var TOL = 1e-5;
 	var TOLnormR22square = TOL * normA;
 	TOLnormR22square *= TOLnormR22square;
 	
@@ -3224,5 +3222,3 @@ function qr( A, compute_Q ) {
 
 	return {"Q" : Q, "R" : transpose(R), "V": V, "beta" : beta, "piv" : piv, "rank" : r+1 };
 }
-return {Matrix: Matrix, transpose: transpose, mul: mul, solveGaussianElimination: solveGaussianElimination};
-}()
