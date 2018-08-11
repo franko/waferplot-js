@@ -27,6 +27,21 @@ var container = document.getElementById("three-js");
 var renderer_element;
 var data_element;
 var pasteDataOverlayDiv;
+var valueOptionsOverlayDiv;
+var valueOptionsGetter;
+
+MYAPP.getOption = function(option_name) {
+	if (valueOptionsGetter) {
+		var fn = valueOptionsGetter[option_name];
+		if (fn) {
+			return fn();
+		}
+	} else {
+		if (option_name === 'z_auto') {
+			return true;
+		}
+	}
+}
 
 var createButton = function(text, onclick) {
 	var bt = document.createElement("button");
@@ -101,6 +116,38 @@ var pasteData = function() {
 	document.body.appendChild(pasteDataOverlayDiv);
 };
 
+var newInputRadioBtn = function(name, value, text, checked) {
+	var lab = document.createElement("label");
+	var bt = document.createElement("input");
+	bt.setAttribute("type", "radio");
+	bt.setAttribute("name", name);
+	bt.setAttribute("value", value);
+	if (checked) {
+		bt.setAttribute("checked", "");
+	}
+	lab.appendChild(bt);
+	lab.appendChild(document.createTextNode(text));
+	return {button: bt, label: lab};
+};
+
+var newOptionsTableTr = function(text, input_attributes, disabled) {
+	var tr = document.createElement("tr");
+	var td = document.createElement("td");
+	td.appendChild(document.createTextNode(text));
+	tr.appendChild(td);
+	td = document.createElement("td");
+	var input_text = document.createElement("input");
+	for (var key in input_attributes) {
+		input_text.setAttribute(key, input_attributes[key]);
+	}
+	if (disabled) {
+		input_text.setAttribute("disabled", "");
+	}
+	td.appendChild(input_text);
+	tr.appendChild(td);
+	return {tr: tr, input_text: input_text};
+}
+
 var newOptionsOverlayDiv = function() {
 	var div_overlay = document.createElement("div");
 	div_overlay.className = "overlay";
@@ -109,24 +156,54 @@ var newOptionsOverlayDiv = function() {
 	div.className = "overlay-content";
 
 	var div_options = document.createElement("div");
-	div_options.id = "options-div"
+	div_options.id = "options-div";
+
+	var option_auto = newInputRadioBtn("z-scale", "auto", "Auto", true);
+	div_options.appendChild(option_auto.label);
+	var option_manual = newInputRadioBtn("z-scale", "manual", "Manual", false);
+	div_options.appendChild(option_manual.label);
+
+	var options_scale_disabled = true;
+
+	var table = document.createElement("table");
+	var input_number_attrs = {type: 'number', step: 'any'};
+	var input_rows = [];
+	input_rows.push(newOptionsTableTr("Maximum", input_number_attrs, options_scale_disabled));
+	input_rows.push(newOptionsTableTr("Minimum", input_number_attrs, options_scale_disabled));
+	input_rows.push(newOptionsTableTr("Intervals", {type: 'text'}, options_scale_disabled));
+	input_rows.forEach(function(row) { table.appendChild(row.tr); });
+	div_options.appendChild(table);
+
+	var auto_options_on_click = function() {
+		var new_disabled_state = (option_auto.button.checked === true);
+		if (new_disabled_state !== options_scale_disabled) {
+			if (new_disabled_state) {
+				input_rows.forEach(function(row) { row.input_text.setAttribute("disabled", ""); });
+			} else {
+				input_rows.forEach(function(row) { row.input_text.removeAttribute("disabled"); });
+			}
+			options_scale_disabled = new_disabled_state;
+		}
+	}
+	option_auto.button.addEventListener("click", auto_options_on_click);
+	option_manual.button.addEventListener("click", auto_options_on_click);
 	div.appendChild(div_options);
 
-	// <input type="radio" name="z-scale" value="auto" checked onclick="radio_on_click"><label>Auto</label>
-	// <input type="radio" name="z-scale" value="manual" onclick="radio_on_click"><label>Manual</label>
-
-	var bt_done = createButton("Done", function() { action.done(table); });
+	var bt_done = createButton("Close", function() { document.body.removeChild(div_overlay); });
 	div.appendChild(bt_done);
 
-	var bt_cancel = createButton("Cancel", function() { action.cancel(table); });
-	div.appendChild(bt_cancel);
 	div.appendChild(newClearDiv());
-
 	div_overlay.appendChild(div);
-	return div_overlay;
-}
 
-MYAPP.newOptionsOverlayDiv = newOptionsOverlayDiv;
+	var getMap = {
+		z_auto: function() { return option_auto.button.checked; },
+		z_max: function() { return input_rows[0].input_text.valueAsNumber; },
+		z_min: function() { return input_rows[1].input_text.valueAsNumber; },
+		z_intervals: function() { var t = input_rows[2].input_text.value; return (t === '' ? null : Number(t)); },
+	};
+
+	return {div: div_overlay, get: getMap};
+}
 
 var enable_output = function(what) {
 	if (container.firstChild) {
@@ -510,16 +587,24 @@ var new_plot = function(zfun, normal_fun, xy_norm, dataset, plotting_columns) {
     }
 
 	var zmin, zmax;
-	for (var i = 0; i <= Nx; i++) {
-		for (var j = 0; j <= Ny; j++) {
-			var z = xyeval(i, j, zfun);
-			zmin = (zmin && zmin <= z) ? zmin : z;
-			zmax = (zmax && zmax >= z) ? zmax : z;
+	var zlevel_number;
+    if (MYAPP.getOption('z_auto')) {
+		for (var i = 0; i <= Nx; i++) {
+			for (var j = 0; j <= Ny; j++) {
+				var z = xyeval(i, j, zfun);
+				zmin = (zmin && zmin <= z) ? zmin : z;
+				zmax = (zmax && zmax >= z) ? zmax : z;
+			}
 		}
+		zlevel_number = 11;
+	} else {
+		zmin = MYAPP.getOption('z_min');
+		zmax = MYAPP.getOption('z_max');
+		var zn = MYAPP.getOption('z_intervals');
+		zlevel_number = (zn ? zn : 11);
 	}
 
-	var ZLEVEL_NUMBER = 11;
-	var zunits = MYAPP.scale_units(zmin, zmax, ZLEVEL_NUMBER);
+	var zunits = MYAPP.scale_units(zmin, zmax, zlevel_number);
 	var zdiv = zunits.div;
 	var zindex1 = Math.floor(zmin / zdiv), zindex2 = Math.ceil(zmax / zdiv);
 	if (zindex2 <= zindex1) zindex2 = zindex1 + 1;
@@ -666,8 +751,12 @@ document.getElementById("show-points-check").addEventListener("change", function
 	render();
 });
 document.getElementById("options-bt").addEventListener("click", function(event) {
-	var div_overlay = newOptionsOverlayDiv();
-	document.body.appendChild(div_overlay);
+	if (!valueOptionsOverlayDiv) {
+		var options = newOptionsOverlayDiv();
+		valueOptionsOverlayDiv = options.div;
+		valueOptionsGetter = options.get;
+	}
+	document.body.appendChild(valueOptionsOverlayDiv);
 });
 
 render();
